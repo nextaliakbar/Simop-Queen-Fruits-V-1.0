@@ -4,6 +4,7 @@ namespace App\Http;
 
 use App\Http\Middleware\ActivationCheckMiddleware;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\ModulePermissionMiddleware;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -66,6 +67,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => AdminMiddleware::class,
-        'actch' => ActivationCheckMiddleware::class
+        'actch' => ActivationCheckMiddleware::class,
+        'module' => ModulePermissionMiddleware::class
     ];
 }

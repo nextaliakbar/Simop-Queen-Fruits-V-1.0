@@ -403,7 +403,7 @@
                 } else if (status == 0) {
                     $(t).prop('checked', true);
                 }
-                toastr.info("Status tidak dapat diubah");
+                toastr.info("Status belum berubah");
             }
         });
     }

@@ -236,7 +236,9 @@
                             </li>
                             <!-- End Pages -->
                         @endif
+--}}
 
+                        <!-- Product Management -->
                         @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['product_management']))
                             <li class="nav-item">
                                 <small
@@ -267,7 +269,7 @@
                                         <a class="nav-link " href="{{route('admin.category.add-sub-category')}}"
                                            title="tambah-sub-kategori-produk">
                                             <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="text-truncate">Tambah Sub Kategori Produk</span>
+                                            <span class="text-truncate">Sub Kategori Produk</span>
                                         </a>
                                     </li>
 
@@ -276,7 +278,7 @@
                             <!-- End Pages -->
 
                             <!-- Pages -->
-                            <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/addon*') ||Request::is('admin/product*') || Request::is('admin/attribute*') || Request::is('admin/reviews/list')?'active':''}}">
+                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/product*') || Request::is('admin/attribute*') || Request::is('admin/reviews/list')?'active':''}}">
                                 <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                                 >
                                     <i class="tio-premium-outlined nav-icon"></i>
@@ -284,7 +286,7 @@
                                         class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">Pengaturan Produk</span>
                                 </a>
                                 <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
-                                    style="display: {{Request::is('admin/product*') || Request::is('admin/addon*') || Request::is('admin/attribute*') || Request::is('admin/reviews*')?'block':'none'}}">
+                                    style="display: {{Request::is('admin/product*') || Request::is('admin/attribute*') || Request::is('admin/reviews*')?'block':'none'}}">
                                     <li class="nav-item {{Request::is('admin/product/add-new') ?'active':'' }}">
                                         <a class="nav-link " href="{{route('admin.product.add-new')}}" title="tambah-produk">
                                             <span class="tio-circle nav-indicator-icon"></span>
@@ -308,9 +310,10 @@
                                     </li>
                                 </ul>
                             </li>
+                            @endif
                             <!-- End Pages -->
-                        @endif
 
+{{--
                         <!-- Promotion Management -->
                         @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['promotion_management']))
                             <li class="nav-item">

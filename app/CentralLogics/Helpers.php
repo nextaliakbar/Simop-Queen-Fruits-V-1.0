@@ -3,12 +3,22 @@
 namespace App\CentralLogics;
 
 use App\Models\BusinessSetting;
+use App\Models\Review;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class Helpers
 {
+    public static function error_processor($validator) {
+        $error_keeper = [];
+        foreach($validator->errors()->getMessages() as $index => $error) {
+            $error_keeper[] = ['code' => $index, 'message' => $error[0]];
+        }
+
+        return $error_keeper;
+    }
+
     public static function get_business_settings(string $name)
     {
         $config = null;
@@ -28,18 +38,6 @@ class Helpers
         }
 
         return $config;
-    }
-
-    public static function language_load()
-    {
-        if(\session()->has('language_settings')) {
-            $language = \session()->get('language_settings');
-        } else {
-            $language = BusinessSetting::where('key', 'language')->first();
-            \session()->put('language_settings', $language);
-        }
-
-        return $language;
     }
 
     public static function on_error_image($data, $src, $error_src, $path)
@@ -78,8 +76,6 @@ class Helpers
         } else {
             $image_name = 'def.png';
         }
-
-        echo $image_name;
         return $image_name;
     }
 
@@ -90,5 +86,63 @@ class Helpers
         }
         $image_name = Helpers::upload($dir, $format, $image);
         return $image_name;
+    }
+
+    public static function delete($full_path_image, $full_path_banner = null)
+    {
+        if(Storage::disk('public')->exists($full_path_image)) {
+            Storage::disk('public')->delete($full_path_image);
+        }
+
+        if(!is_null($full_path_banner)) {
+            if(Storage::disk('public')->exists($full_path_banner)) {
+                Storage::disk('public')->delete($full_path_banner);
+            }
+        }
+
+        return [
+            'success' => 1,
+            'message' => 'berhasil dihapus'
+        ];
+    }
+
+    public static function get_pagination()
+    {
+        $pagination_limit = Helpers::get_business_settings('pagination_limit');
+        return $pagination_limit ?? 25;
+    }
+
+    public static function rating_count($product_id, $rating)
+    {
+        return Review::where(['product_id' => $product_id, 'rating' => $rating])->count();
+    }
+
+    public static function tax_calculate($product, $price)
+    {
+        $price_tax = 0;
+
+        if(!is_null($product['tax_type'])) {
+            if($product['tax_type'] == 'percent') {
+                $price_tax = ($price / 100) * $product['tax'];
+            } else {
+                $price_tax = $product['tax'];
+            }
+        }
+
+        return $price_tax;
+    }
+
+    public static function discount_calculate($product, $price) {
+        $price_discount = 0;
+
+        if(!is_null($product['tax_type'])) {
+            if($product['discount_type'] == 'percent') {
+                $price_discount = ($price / 100) * $product['discount'];
+            } else {
+                $price_discount = $product['discount'];
+            }
+        }
+
+        return $price_discount;
     }
 }
