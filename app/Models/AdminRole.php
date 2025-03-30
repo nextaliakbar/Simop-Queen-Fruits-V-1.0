@@ -7,5 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class AdminRole extends Model
 {
-    use HasFactory;
+    protected $casts = [
+        'id' => 'integer',
+        'status' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
 }

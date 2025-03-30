@@ -313,12 +313,11 @@
                             @endif
                             <!-- End Pages -->
 
-{{--
                         <!-- Promotion Management -->
                         @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['promotion_management']))
                             <li class="nav-item">
                                 <small
-                                    class="nav-subtitle">Manajemen Promosi Toko</small>
+                                    class="nav-subtitle">Manajemen Promosi</small>
                                 <small class="tio-more-horizontal nav-subtitle-replacer"></small>
                             </li>
 
@@ -327,14 +326,6 @@
                                 <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('admin.banner.list')}}">
                                     <i class="tio-image nav-icon"></i>
                                     <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">Banner</span>
-                                </a>
-                            </li>
-
-                            <!-- COUPON -->
-                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/coupon*')?'active':''}}">
-                                <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('admin.coupon.add-new')}}">
-                                    <i class="tio-gift nav-icon"></i>
-                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">Kupon</span>
                                 </a>
                             </li>
                         @endif
@@ -360,41 +351,6 @@
                                             <span class="text-truncate">Daftar Pelanggan</span>
                                         </a>
                                     </li>
-                                </ul>
-                            </li>
-
-                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/customer/wallet*') ?'active':''}}">
-                                <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:">
-                                    <i class="tio-wallet nav-icon"></i>
-                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                        Dompet Pelanggan
-                                    </span>
-                                </a>
-                                <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display: {{Request::is('admin/customer/wallet/add-fund') || Request::is('admin/customer/wallet/report') || Request::is('admin/customer/wallet/bonus*')?'block':''}}; top: 831.076px;">
-                                    <li class="nav-item {{Request::is('admin/customer/wallet/report') ? 'active' : ''}}">
-                                        <a class="nav-link" href="{{route('admin.customer.wallet.report')}}">
-                                            <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="text-truncate">Laporan Dompet Pelanggan</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/customer/loyalty-point/report') ?'active':''}}">
-                                <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:">
-                                    <i class="tio-medal nav-icon"></i>
-                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                        Poin Pelanggan
-                                    </span>
-                                </a>
-                                <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display: {{Request::is('admin/customer/loyalty-point/report')?'block':''}}; top: 831.076px;">
-                                    <li class="nav-item {{Request::is('admin/customer/loyalty-point/report') ? 'active' : ''}}">
-                                        <a class="nav-link" href="{{route('admin.customer.loyalty-point.report')}}">
-                                            <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="text-truncate">Laporan Poin Pelanggan</span>
-                                        </a>
-                                    </li>
-
                                 </ul>
                             </li>
                         @endif
@@ -434,10 +390,10 @@
                         @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['user_management']))
                             @if(auth('admin')->user()->admin_role_id == 1)
                                 <li class="navbar-vertical-aside-has-menu {{Request::is('admin/custom-role*') || Request::is('admin/employee*')?'active':''}}">
-                                    <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="{{translate('Employees')}}">
+                                    <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="Employees">
                                         <i class="tio-incognito nav-icon"></i>
                                         <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                            Karyawan
+                                            Pengaturan Karyawan
                                         </span>
                                     </a>
                                     <ul class="js-navbar-vertical-aside-submenu nav nav-sub " style="display: {{Request::is('admin/custom-role*') || Request::is('admin/employee*')?'block':''}}">
@@ -446,7 +402,7 @@
                                             <a class="nav-link" href="{{route('admin.custom-role.create')}}" title="pengaturan-peran-karyawan">
                                                 <span class="tio-circle nav-indicator-icon"></span>
                                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                                    Pengaturan Peran Karyawan</span>
+                                                    Peran Karyawan</span>
                                             </a>
                                         </li>
 
@@ -454,7 +410,7 @@
                                             <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="pengaturan-karyawan">
                                                 <span class="tio-user mr-2"></span>
                                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                                    Pengaturan Karyawan
+                                                    Karyawan
                                                 </span>
                                             </a>
                                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display: {{Request::is('admin/employee*')?'block':''}}">
@@ -487,7 +443,7 @@
                         </li>
                         <!-- Business_Setup -->
                         <li class="navbar-vertical-aside-has-menu {{Request::is('admin/business-settings/restaurant*')?'active':''}}">
-                            <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('admin.business-settings.restaurant.restaurant-setup')}}">
+                            <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('admin.business-settings.store.store-setup')}}">
                                 <i class="tio-settings nav-icon"></i>
                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">Pengturan Bisnis</span>
                             </a>
@@ -500,7 +456,7 @@
                                    href="javascript:">
                                     <i class="tio-shop nav-icon"></i>
                                     <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                            Pengaturan Cabang Bisnis
+                                            Cabang Bisnis
                                         </span>
                                 </a>
                                 <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
@@ -508,13 +464,13 @@
                                     <li class="nav-item {{Request::is('admin/branch/add-new')?'active':''}}">
                                         <a class="nav-link " href="{{route('admin.branch.add-new')}}">
                                             <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="text-truncate">Tambah Cabang Bisnis</span>
+                                            <span class="text-truncate">Tambah Cabang</span>
                                         </a>
                                     </li>
                                     <li class="nav-item {{Request::is('admin/branch/list')?'active':''}}">
                                         <a class="nav-link" href="{{route('admin.branch.list')}}">
                                             <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="text-truncate">Daftar Cabang Bisnis</span>
+                                            <span class="text-truncate">Daftar Cabang</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -522,7 +478,6 @@
                         <!--END BRANCH SETUP -->
                         @endif
                         <!--END SYSTEM SETTINGS -->
---}}
                         <li class="nav-item pt-10">
                             <div class=""></div>
                         </li>

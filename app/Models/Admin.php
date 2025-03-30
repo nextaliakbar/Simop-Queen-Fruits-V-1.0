@@ -32,4 +32,21 @@ class Admin extends Authenticatable
 
         return $path;
     }
+
+    public function getIdentityImageFullPathAttribute()
+    {
+        $value = $this->identity_image ?? [];
+        $image_url_array = is_array($value) ? $value : json_decode($value, true);
+        if(is_array($image_url_array)) {
+            foreach ($image_url_array as $key => $item) {
+                if(Storage::disk('public')->exists('admin/' . $item)) {
+                    $image_url_array[$key] = asset('storage/admin/' . $item);
+                } else {
+                    $image_url_array[$key] = asset('assets/admin/img/400x400/img2.jpg');
+                }
+            }
+        }
+
+        return $image_url_array;
+    }
 }

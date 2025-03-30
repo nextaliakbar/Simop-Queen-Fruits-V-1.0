@@ -3,6 +3,7 @@
 namespace App\CentralLogics;
 
 use App\Models\BusinessSetting;
+use App\Models\DMReview;
 use App\Models\Review;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -144,5 +145,10 @@ class Helpers
         }
 
         return $price_discount;
+    }
+
+    public static function dm_rating_count($deliveryman_id, $rating)
+    {
+        return DMReview::where(['delivery_man_id' => $deliveryman_id, 'rating' => $rating])->count();
     }
 }
