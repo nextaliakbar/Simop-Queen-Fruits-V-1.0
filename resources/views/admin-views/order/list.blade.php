@@ -12,7 +12,27 @@
             <h2 class="h1 mb-0 d-flex align-items-center gap-1">
                 <img width="20" class="avatar-img" src="{{asset('assets/admin/img/icons/all_orders.png')}}" alt="">
                 <span class="page-header-title">
-                {{($status)}} Pesanan
+                    @if ($status == 'all')
+                        Semua Pesanan    
+                    @elseif ($status == 'pending')
+                        Pesanan Tertunda
+                    @elseif ($status == 'confirmed')
+                        Pesanan Dikonfirmasi
+                    @elseif ($status == 'processing')
+                        Pesanan Diproses
+                    @elseif ($status == 'out_for_delivery')
+                        Pesanan Dalam Pengiriman
+                    @elseif ($status == 'delivered')
+                        Pesanan Terkirim
+                    @elseif ($status == 'returned')
+                        Pesanan Dikembalikan
+                    @elseif ($status == 'failed')
+                        Pesanan Gagal Terkirim
+                    @elseif ($status == 'canceled')
+                        Pesanan Dibatalkan
+                    @elseif ($status == 'schedule')
+                        Penjadwalan Pesanan
+                    @endif
                 </span>
             </h2>
             <span class="badge badge-soft-dark rounded-50 fz-14">{{ $orders->total() }}</span>

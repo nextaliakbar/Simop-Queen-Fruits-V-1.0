@@ -311,10 +311,10 @@
         function showMore(id) {
             $('#__descripiton-txt' + id).toggleClass('__not-first-hidden')
             if($('#show-more' + id).hasClass('active')) {
-                $('#show-more' + id).text('{{translate('See More')}}')
+                $('#show-more' + id).text('Lihat Lebih Banyak')
                 $('#show-more' + id).removeClass('active')
             }else {
-                $('#show-more' + id).text('{{translate('See Less')}}')
+                $('#show-more' + id).text('Lihat Lebih Sedikit')
                 $('#show-more' + id).addClass('active')
             }
         }

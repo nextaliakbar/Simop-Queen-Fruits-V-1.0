@@ -244,9 +244,8 @@ class ProductController extends Controller
     public function view($id)
     {
         $product = $this->product->where(['id' => $id])->first();
-
-        $reviews = Review::where(['product_id' => $product->id])->first();
-        
+        $reviews = Review::where(['product_id' => $product->id])->latest()->paginate(Helpers::get_pagination());        
+        return view('admin-views.product.view', compact('product', 'reviews'));
     }
 
     public function status(Request $request): RedirectResponse

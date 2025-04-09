@@ -45,7 +45,7 @@
                                 <div class="col-lg-6">
                                     <div class="form-group">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">Name</label>
+                                               for="exampleFormControlInput1">Nama</label>
                                         <input value="{{$branch['name']}}" type="text" name="name" class="form-control" maxlength="255" required>
                                     </div>
                                     <div class="form-group">

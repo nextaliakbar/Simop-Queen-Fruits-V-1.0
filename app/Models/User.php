@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -51,5 +52,22 @@ class User extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'user_id');
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(CustomerAddress::class, 'user_id');
+    }
+
+    public function getImageFullPathAttribute(): string
+    {
+        $image = $this->image ?? null;
+        $path = asset('assets/admin/img/160x160/img1.jpg');
+
+        if(!is_null($image) && Storage::disk('public')->exists('profile/' . $image)) {
+            $path = asset('storage/profile/' . $image);   
+        }
+
+        return $path;
     }
 }

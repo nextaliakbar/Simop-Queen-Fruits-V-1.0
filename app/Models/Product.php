@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class Product extends Model
 {
@@ -40,6 +41,18 @@ class Product extends Model
     public function scopeActive($query)
     {
         return $query->where('status', '=', 1);
+    }
+
+    public function rating(): HasMany
+    {
+        return $this->hasMany(Review::class)
+        ->select(DB::raw('avg(rating) average, product_id'))
+        ->groupBy('product_id');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->latest();
     }
 
     public function getImageFullPathAttribute(): string
