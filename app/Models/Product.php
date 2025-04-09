@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
@@ -29,6 +30,16 @@ class Product extends Model
     public function main_branch_product(): HasOne
     {
         return $this->hasOne(ProductByBranch::class);
+    }
+
+    public function branch_products(): HasMany
+    {
+        return $this->hasMany(ProductByBranch::class)->where(['branch_id' => session()->get('branch_id') ?? 1]);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', '=', 1);
     }
 
     public function getImageFullPathAttribute(): string

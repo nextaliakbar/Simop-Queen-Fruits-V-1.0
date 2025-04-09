@@ -11,3 +11,13 @@ const MANAGEMENT_SECTION = [
     'user_management' => 'Manajemen Pengguna',
     'system_management' => 'Manajemen Sistem',
 ];
+
+const PENDING = 'pending';
+const CONFIRMED = 'confirmed';
+const PROCESSING = 'processing';
+const OUT_FOR_DELIVERY = 'out_for_delivery';
+const DELIVERED = 'delivered';
+const RETURNED = 'returned';
+const FAILED = 'failed';
+const CANCELED = 'canceled';
+const COMPLETED = 'completed';

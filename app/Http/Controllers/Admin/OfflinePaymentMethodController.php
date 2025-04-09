@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OfflinePaymentMethod;
 use App\Models\Order;
 use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -150,5 +151,43 @@ class OfflinePaymentMethodController extends Controller
         $method = $this->offline_payment_method->find($request->id);
         $method->delete();
         return back();
+    }
+
+    public function offline_payment_list(Request $request, $status)
+    {
+        $search = $request['search'];
+        $status_mapping = [
+            'pending' => 0,
+            'denied' => 2
+        ];
+
+        $status = $status_mapping[$status];
+
+        $orders = $this->order->with(['offline_payment'])
+        ->where(['payment_method' => 'offline_payment'])
+        ->whereHas('offline_payment', function ($query) use ($status) {
+            $query->where('status', $status);
+        })
+        ->when($request->has('search'), function ($query) use ($request) {
+            $keys = explode(' ', $request['search']);
+            return $query->where(function ($query) use ($keys) {
+                foreach($keys as $key) {
+                    $query->where('id', 'like', "%{$key}%")
+                    ->orWhere('order_status', 'like', "%{$key}%")
+                    ->orWhere('payment_status', 'like', "%{$key}%");
+                }
+            });
+        })->latest()->paginate(Helpers::get_pagination());
+
+        return view('admin-views.order.offline-payment.list', compact('orders', 'search'));
+    }
+
+    public function quick_view_details(Request $request): JsonResponse
+    {
+        $order = $this->order->find($request->id);
+
+        return response()->json([
+            'view' => view('admin-views.order.offline-payment.details-quick-view', compact('order'))
+        ]);
     }
 }

@@ -41,14 +41,14 @@
                             <div class="col-sm-6">
                                 <div class="text-sm-right">
                                     <div class="d-flex flex-wrap gap-2 justify-content-sm-end">
-                                        @if($order['order_type']!='take_away' && $order['order_type'] != 'pos' && $order['order_type'] != 'dine_in')
+                                        @if($order['order_type']!='take_away' && $order['order_type'] != 'pos')
 
                                             @php($googleMapStatus = \App\CentralLogics\Helpers::get_business_settings('google_map_status'))
                                             @if($googleMapStatus)
                                                 <div class="hs-unfold ml-1">
                                                     @if($order['order_status']=='out_for_delivery')
-                                                        @php($origin=\App\Model\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->first())
-                                                        @php($current=\App\Model\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->latest()->first())
+                                                        @php($origin=\App\Models\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->first())
+                                                        @php($current=\App\Models\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->latest()->first())
                                                         @if(isset($origin))
                                                             <a class="btn btn-outline-primary" target="_blank"
                                                                title="Lokasi terkahir kurir" data-toggle="tooltip" data-placement="top"
@@ -73,14 +73,14 @@
 
                                         @endif
                                         <a class="btn btn-info" href={{route('admin.orders.generate-invoice',[$order['id']])}}>
-                                            <i class="tio-print"></i> Cetak Invoice
+                                            <i class="tio-print"></i> Cetak Bukti Pembayaran
                                         </a>
                                     </div>
 
                                     <div class="d-flex gap-3 justify-content-sm-end my-3">
                                         <div class="text-dark font-weight-semibold">Status :</div>
                                         @if($order['order_status']=='pending')
-                                            <span class="badge-soft-info px-2 rounded text-capitalize">Menunggu</span>
+                                            <span class="badge-soft-info px-2 rounded text-capitalize">Tertunda</span>
                                         @elseif($order['order_status']=='confirmed')
                                             <span class="badge-soft-info px-2 rounded text-capitalize">Dikonfirmasi</span>
                                         @elseif($order['order_status']=='processing')
@@ -98,22 +98,22 @@
 
 
                                     <div class="text-capitalize d-flex gap-3 justify-content-sm-end mb-3">
-                                        <span>Metode Pembayaran :</span>
-                                        <span class="text-dark">{{str_replace('_',' ',$order['payment_method'])}}</span>
+                                        <span>Sumber Pembayaran :</span>
+                                        <span class="text-dark">{{str_replace('_',' ',$order['payment_method'] == 'cash' ? 'Tunai' : 'Non Tunai')}}</span>
                                     </div>
 
-                                    @if(!in_array($order['payment_method'], ['cash_on_delivery', 'wallet_payment', 'offline_payment']))
-                                        @if($order['transaction_reference']==null && $order['order_type']!='pos' && $order['order_type'] != 'dine_in')
+                                    @if(!in_array($order['payment_method'], ['offline_payment', 'card']))
+                                        @if($order['transaction_reference']==null && $order['order_type']!='pos')
                                             <div class="d-flex gap-3 justify-content-sm-end align-items-center mb-3">
-                                                {{translate('reference')}} {{translate('code')}} :
+                                                Kode Referensi :
                                                 <button class="btn btn-outline-primary px-3 py-1" data-toggle="modal"
                                                         data-target=".bd-example-modal-sm">
-                                                    {{translate('add')}}
+                                                    Tambah
                                                 </button>
                                             </div>
-                                        @elseif($order['order_type']!='pos' && $order['order_type'] != 'dine_in')
+                                        @elseif($order['order_type']!='pos')
                                             <div class="d-flex gap-3 justify-content-sm-end align-items-center mb-3">
-                                                {{translate('reference')}} {{translate('code')}}
+                                                Kode Referensi
                                                 : {{$order['transaction_reference']}}
                                             </div>
                                         @endif
@@ -123,18 +123,16 @@
                                     <div class="d-flex gap-3 justify-content-sm-end mb-3">
                                         <div>Status Pembayaran :</div>
                                         @if($order['payment_status']=='paid')
-                                            <span class="badge-soft-success px-2 rounded text-capitalize">Dibayar</span>
-                                        @elseif($order['payment_status']=='partial_paid')
-                                            <span class="badge-soft-success px-2 rounded text-capitalize">Dibayar Sebagian</span>
+                                            <span class="badge-soft-success px-2 rounded text-capitalize">Terbayar</span>
                                         @else
-                                            <span class="badge-soft-danger px-2 rounded text-capitalize">Belum Dibayar</span>
+                                            <span class="badge-soft-danger px-2 rounded text-capitalize">Belum Terbayar</span>
                                         @endif
                                     </div>
 
                                     <div class="d-flex gap-3 justify-content-sm-end mb-3 text-capitalize">
                                         Jenis Pesanan
                                         : <label class="badge-soft-info px-2 rounded">
-                                            {{str_replace('_',' ',$order['order_type'])}}
+                                            {{str_replace('_',' ',$order['order_type'] == 'pos' ? 'Kasir' : 'Pengiriman')}}
                                         </label>
                                     </div>
                                 </div>
@@ -161,15 +159,8 @@
                             @php($subTotal=0)
                             @php($totalTax=0)
                             @php($totalDisOnPro=0)
-                            @php($addOnsCost=0)
-                            @php($addOnTax=0)
-                            @php($addOnsTaxCost=0)
                             @foreach($order->details as $detail)
                                 @php($productDetails = json_decode($detail['product_details'], true))
-                                @php($addOnQtys=json_decode($detail['add_on_qtys'],true))
-                                @php($addOnPrices=json_decode($detail['add_on_prices'],true))
-                                @php($addOnTaxes=json_decode($detail['add_on_taxes'],true))
-
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>
@@ -182,8 +173,8 @@
                                             <div class="media-body text-dark fz-12">
                                                 <h6 class="text-capitalize">{{$productDetails['name']}}</h6>
                                                 <div class="d-flex gap-2">
-                                                    @if (isset($detail['variation']))
-                                                        @foreach(json_decode($detail['variation'],true) as  $variation)
+                                                    @if (isset($detail['variations']))
+                                                        @foreach(json_decode($detail['variations'],true) as  $variation)
                                                             @if (isset($variation['name'])  && isset($variation['values']))
                                                                 <span class="d-block text-capitalize">
                                                                 <strong>{{  $variation['name']}} -</strong>
@@ -192,13 +183,13 @@
 
                                                                     <span class="d-block text-capitalize">
                                                                      {{ $value['label']}} :
-                                                                    <strong>{{Helpers::set_symbol( $value['optionPrice'])}}</strong>
+                                                                    <strong>Rp {{number_format( $value['optionPrice'])}}</strong>
                                                                 </span>
                                                                 @endforeach
                                                             @else
-                                                                @if (isset(json_decode($detail['variation'],true)[0]))
+                                                                @if (isset(json_decode($detail['variations'],true)[0]))
                                                                     <strong><u> Variasi : </u></strong>
-                                                                    @foreach(json_decode($detail['variation'],true)[0] as $key1 =>$variation)
+                                                                    @foreach(json_decode($detail['variations'],true)[0] as $key1 =>$variation)
                                                                         <div class="font-size-sm text-body">
                                                                             <span>{{$key1}} :  </span>
                                                                             <span class="font-weight-bold">{{$variation}}</span>
@@ -209,7 +200,7 @@
                                                         @endforeach
                                                     @else
                                                         <div class="font-size-sm text-body">
-                                                            <span class="text-dark">Harga  : {{Helpers::set_symbol($detail['price'])}}</span>
+                                                            <span class="text-dark">Harga  : Rp {{number_format($detail['price'])}}</span>
                                                         </div>
                                                     @endif
 
@@ -217,44 +208,23 @@
                                                         <span class="">Qty :  </span>
                                                         <span>{{$detail['quantity']}}</span>
                                                     </div>
-
-                                                    <br>
-                                                    @php($addon_ids = json_decode($detail['add_on_ids'],true))
-                                                    @if ($addon_ids)
-                                                    <span>
-                                                        <u><strong>{{translate('addons')}}</strong></u>
-                                                        @foreach($addon_ids as $key2 =>$id)
-                                                            @php($addon=\App\Model\AddOn::find($id))
-                                                            @php($addOnQtys==null? $add_on_qty=1 : $add_on_qty=$addOnQtys[$key2])
-
-                                                            <div class="font-size-sm text-body">
-                                                                    <span>{{$addon ? $addon['name'] : translate('addon deleted')}} :  </span>
-                                                                    <span class="font-weight-semibold">
-                                                                        {{$add_on_qty}} x {{ Helpers::set_symbol($addOnPrices[$key2]) }} <br>
-                                                                    </span>
-                                                                </div>
-                                                            @php($addOnsCost+=$addOnPrices[$key2] * $add_on_qty)
-                                                            @php($addOnsTaxCost +=  $addOnTaxes[$key2] * $add_on_qty)
-                                                        @endforeach
-                                                    </span>
-                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         @php($amount=$detail['price']*$detail['quantity'])
-                                        {{Helpers::set_symbol($amount)}}
+                                        Rp {{number_format($amount)}}
                                     </td>
                                     <td>
                                         @php($totDiscount = $detail['discount_on_product']*$detail['quantity'])
-                                        {{Helpers::set_symbol($totDiscount)}}
+                                        Rp {{number_format($totDiscount)}}
                                     </td>
                                     <td>
                                         @php($productTax = $detail['tax_amount']*$detail['quantity'])
-                                        {{Helpers::set_symbol($productTax + $addOnsTaxCost)}}
+                                        Rp {{number_format($productTax)}}
                                     </td>
-                                    <td class="text-right">{{Helpers::set_symbol($amount-$totDiscount + $productTax)}}</td>
+                                    <td class="text-right">{{number_format($amount-$totDiscount + $productTax)}}</td>
                                 </tr>
                                 @php($totalDisOnPro += $totDiscount)
                                 @php($subTotal += $amount)
@@ -273,70 +243,47 @@
                                 <dl class="row">
                                     <dt class="col-6">
                                         <div class="d-flex max-w220 ml-auto">
-                                            {{translate('items')}} {{translate('price')}} <span>:</span>
+                                            Harga Produk<span>:</span>
                                         </div>
                                     </dt>
-                                    <dd class="col-6 text-dark text-right">{{ Helpers::set_symbol($subTotal) }}</dd>
+                                    <dd class="col-6 text-dark text-right">Rp {{ number_format($subTotal) }}</dd>
 
                                     <dt class="col-6">
                                         <div class="d-flex max-w220 ml-auto">
-                                            <span>{{translate('tax')}} / {{translate('vat')}}</span>
+                                            <span>Pajak / PPN</span>
                                             <span>:</span>
                                         </div>
                                     </dt>
-                                    <dd class="col-6 text-dark text-right">{{ Helpers::set_symbol($totalTax + $addOnsTaxCost) }}</dd>
-
-                                    <dt class="col-6">
-
-                                        <div class="d-flex max-w220 ml-auto">
-                                            <span>{{translate('addon')}} {{translate('cost')}}</span>
-                                            <span>:</span>
-                                        </div>
-                                    </dt>
-                                    <dd class="col-6 text-dark text-right">
-                                        {{ Helpers::set_symbol($addOnsCost) }}
-                                    </dd>
-
+                                    <dd class="col-6 text-dark text-right">Rp {{ number_format($totalTax) }}</dd>
                                     <dt class="col-6">
                                         <div class="d-flex max-w220 ml-auto">
-                                            <span>{{translate('item')}} {{translate('discount')}}</span>
+                                            <span>Diskon Produk</span>
                                             <span>:</span>
                                         </div>
                                     </dt>
-                                    <dd class="col-6 text-dark text-right">{{ Helpers::set_symbol($totalDisOnPro) }}</dd>
+                                    <dd class="col-6 text-dark text-right">Rp {{ number_format($totalDisOnPro) }}</dd>
 
                                     <dt class="col-6">
                                         <div class="d-flex max-w220 ml-auto">
                                             <span>
-                                        {{translate('subtotal')}}</span>
+                                        Subtotal</span>
                                             <span>:</span>
                                         </div>
                                     </dt>
                                     <dd class="col-6 text-dark text-right">
-                                        {{ Helpers::set_symbol($subTotal =$subTotal+$totalTax+$addOnsCost-$totalDisOnPro + $addOnsTaxCost) }}</dd>
-
-                                    <dt class="col-6">
-
-                                        <div class="d-flex max-w220 ml-auto">
-                                            <span>{{translate('coupon')}} {{translate('discount')}}</span>
-                                            <span>:</span>
-                                        </div>
-                                    </dt>
-                                    <dd class="col-6 text-dark text-right">
-                                        - {{ Helpers::set_symbol($order['coupon_discount_amount']) }}</dd>
-
+                                        Rp {{ number_format($subTotal =$subTotal+$totalTax-$totalDisOnPro) }}</dd>
                                     <dt class="col-6">
                                         <div class="d-flex max-w220 ml-auto">
-                                            <span>{{translate('extra discount')}} </span>
+                                            <span>Ekstra Diskon </span>
                                         <span>:</span>
                                         </div>
                                     </dt>
                                     <dd class="col-6 text-dark text-right">
-                                        - {{ Helpers::set_symbol($order['extra_discount']) }}</dd>
+                                        - Rp {{ number_format($order['extra_discount']) }}</dd>
                                     <dt class="col-6">
                                         <div class="d-flex max-w220 ml-auto">
                                             <span>
-                                                {{translate('delivery')}} {{translate('fee')}}</span>
+                                                Biaya Pengiriman</span>
                                             <span>:</span>
                                         </div>
                                     </dt>
@@ -346,45 +293,16 @@
                                         @else
                                             @php($del_c=$order['delivery_charge'])
                                         @endif
-                                        {{ Helpers::set_symbol($del_c) }}
+                                        Rp {{ number_format($del_c) }}
                                     </dd>
 
                                     <dt class="col-6 border-top pt-2 fz-16 font-weight-bold">
                                         <div class="d-flex max-w220 ml-auto">
-                                            <span>{{translate('total')}}</span>
+                                            <span>Total</span>
                                         <span>:</span>
                                         </div>
                                     </dt>
-                                    <dd class="col-6 border-top pt-2 fz-16 font-weight-bold text-dark text-right">{{ Helpers::set_symbol($subTotal - $order['coupon_discount_amount'] - $order['extra_discount'] + $del_c) }}</dd>
-
-                                    @if ($order->order_partial_payments->isNotEmpty())
-                                        @foreach($order->order_partial_payments as $partial)
-                                            <dt class="col-6">
-                                                <div class="d-flex max-w220 ml-auto">
-                                            <span>
-                                                {{translate('Paid By')}} ({{str_replace('_', ' ',$partial->paid_with)}})</span>
-                                                    <span>:</span>
-                                                </div>
-                                            </dt>
-                                            <dd class="col-6 text-dark text-right">
-                                                {{ Helpers::set_symbol($partial->paid_amount) }}
-                                            </dd>
-                                        @endforeach
-                                            <?php
-                                                $due_amount = 0;
-                                                $due_amount = $order->order_partial_payments->first()?->due_amount;
-                                            ?>
-                                            <dt class="col-6">
-                                                <div class="d-flex max-w220 ml-auto">
-                                            <span>
-                                                {{translate('Due Amount')}}</span>
-                                                    <span>:</span>
-                                                </div>
-                                            </dt>
-                                            <dd class="col-6 text-dark text-right">
-                                                {{ Helpers::set_symbol($due_amount) }}
-                                            </dd>
-                                    @endif
+                                    <dd class="col-6 border-top pt-2 fz-16 font-weight-bold text-dark text-right">Rp {{ number_format($subTotal - $order['extra_discount'] + $del_c) }}</dd>
                                 </dl>
                             </div>
                         </div>
@@ -396,20 +314,20 @@
                     @if($order['order_type'] != 'pos')
                     <div class="card mb-3">
                         <div class="card-body text-capitalize d-flex flex-column gap-4">
-                            <h4 class="mb-0 text-center">{{translate('Order_Setup')}}</h4>
+                            <h4 class="mb-0 text-center">Pengaturan Pesanan</h4>
 
                             @if(isset($order->offline_payment))
                                 <div class="card mt-3">
                                     <div class="card-body text-center">
                                         @if($order->offline_payment?->status == 1)
-                                            <h4 class="">{{ translate('Payment_verified') }}</h4>
+                                            <h4 class="">Pembayaran Terverifikasi</h4>
                                         @else
-                                            <h4 class="">{{ translate('Payment_verification') }}</h4>
-                                            <p class="text-danger">{{ translate('please verify the payment before confirm order') }}</p>
+                                            <h4 class="">Verifikasi Pembayaran</h4>
+                                            <p class="text-danger">Mohon untuk melakukan verifikasi pembayaran sebelum mengkonfirmasi pesanan</p>
                                             <div class="mt-3">
                                                 <button class="btn btn-primary" type="button"
                                                         data-id="{{ $order['id'] }}"
-                                                        data-target="#payment_verify_modal" data-toggle="modal">{{ translate('Verify_Payment') }}
+                                                        data-target="#payment_verify_modal" data-toggle="modal">Verifikasi Pembayaran
                                                 </button>
                                             </div>
                                         @endif
@@ -420,98 +338,97 @@
 
                             @if($order['order_type'] != 'pos')
                                 <div class="hs-unfold w-100">
-                                    <label class="font-weight-bold text-dark fz-14">{{translate('Change_Order_Status')}}</label>
+                                    <label class="font-weight-bold text-dark fz-14">Ubah Status Pesanan</label>
                                     <div class="dropdown">
                                         <button class="form-control h--45px dropdown-toggle d-flex justify-content-between align-items-center w-100" type="button"
                                                 id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
                                                 aria-expanded="false">
-                                            {{ translate($order['order_status'])}}
+                                                @if ($order['order_status'] == 'pending')
+                                                    Tertunda    
+                                                @elseif ($order['order_status'] == 'confirmed')
+                                                    Dikonfirmasi
+                                                @elseif ($order['order_status'] == 'processing')
+                                                    Diproses
+                                                @elseif ($order['order_status'] == 'out_for_delivery')
+                                                    Dalam Pengiriman
+                                                @elseif ($order['order_status'] == 'delivered')
+                                                    Terkirim
+                                                @elseif ($order['order_status'] == 'returned')
+                                                    Dikembalikan
+                                                @elseif ($order['order_status'] == 'failed')
+                                                    Gagal
+                                                @elseif ($order['order_status'] == 'canceled')
+                                                    Dibatalkan
+                                                @endif
                                         </button>
                                         <div class="dropdown-menu text-capitalize" aria-labelledby="dropdownMenuButton">
                                             @if($order['payment_method'] == 'offline_payment' && $order->offline_payment?->status != 1)
-                                                @if($order['order_type'] != 'dine_in')
-                                                    <a class="dropdown-item offline-payment-order-alert"
-                                                       href="javascript:">{{translate('pending')}}</a>
-                                                @endif
+                                                <a class="dropdown-item offline-payment-order-alert"
+                                                    href="javascript:">Tertunda</a>
 
                                                 <a class="dropdown-item offline-payment-order-alert"
-                                                   href="javascript:">{{translate('confirmed')}}</a>
+                                                   href="javascript:">Dikonfirmasi</a>
 
-                                                @if($order['order_type'] != 'dine_in')
-                                                    <a class="dropdown-item offline-payment-order-alert"
-                                                       href="javascript:">{{translate('processing')}}</a>
-                                                    <a class="dropdown-item offline-payment-order-alert"
-                                                       href="javascript:">{{translate('out_for_delivery')}}</a>
-                                                    <a class="dropdown-item offline-payment-order-alert"
-                                                       href="javascript:">{{translate('delivered')}}</a>
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="{{ translate("Change status to returned ?") }}"
-                                                       href="javascript:">{{translate('returned')}}</a>
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="{{ translate("Change status to failed ?") }}"
-                                                       href="javascript:">{{translate('failed')}}</a>
-                                                @endif
+                                                <a class="dropdown-item offline-payment-order-alert"
+                                                    href="javascript:">Diproses</a>
 
-                                                @if($order['order_type'] == 'dine_in')
-                                                    <a class="dropdown-item offline-payment-order-alert"
-                                                       href="javascript:">{{translate('cooking')}}</a>
-                                                    <a class="dropdown-item offline-payment-order-alert"
-                                                       href="javascript:">{{translate('completed')}}</a>
-                                                @endif
+                                                <a class="dropdown-item offline-payment-order-alert"
+                                                    href="javascript:">Dalam Pengiriman</a>
+
+                                                <a class="dropdown-item offline-payment-order-alert"
+                                                    href="javascript:">Terkirim</a>
+
                                                 <a class="dropdown-item route-alert"
-                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="{{ translate("Change status to canceled ?") }}"
-                                                   href="javascript:">{{translate('canceled')}}</a>
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="Ubah status menjadi dikembalikan?"
+                                                    href="javascript:">Dikembalikan</a>
+
+                                                <a class="dropdown-item route-alert"
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="Ubah status menjadi gagal?"
+                                                    href="javascript:">Gagal</a>
+
+                                                <a class="dropdown-item route-alert"
+                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="Ubah status menjadi dibatalkan?"
+                                                   href="javascript:">Dibatalkan</a>
                                             @else
 
-                                                @if($order['order_type'] != 'dine_in')
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'pending'])}}" data-message="{{ translate("Change status to pending ?") }}"
-                                                       href="javascript:">{{translate('pending')}}</a>
-                                                @endif
+                                                <a class="dropdown-item route-alert"
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'pending'])}}" data-message="Ubah status menjadi tertunda?"
+                                                    href="javascript:">Tertunda</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'confirmed'])}}" data-message="{{ translate("Change status to confirmed ?") }}"
-                                                   href="javascript:">{{translate('confirmed')}}</a>
-
-                                                @if($order['order_type'] != 'dine_in')
-                                                    <a class="dropdown-item route-alert"
-                                                        data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'processing'])}}" data-message="{{ translate("Change status to processing ?") }}"
-                                                        href="javascript:">{{translate('processing')}}</a>
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'out_for_delivery'])}}" data-message="{{ translate("Change status to out for delivery ?") }}"
-                                                       href="javascript:">{{translate('out_for_delivery')}}</a>
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'delivered'])}}" data-message="{{ translate("Change status to delivered ?") }}"
-                                                       href="javascript:">{{translate('delivered')}}</a>
-
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="{{ translate("Change status to returned ?") }}"
-                                                       href="javascript:">{{translate('returned')}}</a>
-
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="{{ translate("Change status to failed ?") }}"
-                                                       href="javascript:">{{translate('failed')}}</a>
-                                                @endif
-                                                @if($order['order_type'] == 'dine_in')
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'cooking'])}}" data-message="{{ translate("Change status to cooking ?") }}"
-                                                       href="javascript:">{{translate('cooking')}}</a>
-
-                                                    <a class="dropdown-item route-alert"
-                                                       data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'completed'])}}" data-message="{{ translate("Change status to completed ?") }}"
-                                                       href="javascript:">{{translate('completed')}}</a>
-                                                @endif
+                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'confirmed'])}}" data-message="Ubah status menjadi dikonfirmasi?"
+                                                   href="javascript:">Dikonfirmasi</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="{{ translate("Change status to canceled ?") }}"
-                                                   href="javascript:">{{translate('canceled')}}</a>
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'processing'])}}" data-message="Ubah status menjadi diproses?"
+                                                    href="javascript:">Diproses</a>
+
+                                                <a class="dropdown-item route-alert"
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'out_for_delivery'])}}" data-message="Ubah status menjadi dalam pengiriman?"
+                                                    href="javascript:">Dalam Pengiriman</a>
+
+                                                <a class="dropdown-item route-alert"
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'delivered'])}}" data-message="Ubah status menjadi terkirim?"
+                                                    href="javascript:">Terkirim</a>
+
+                                                <a class="dropdown-item route-alert"
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="Ubah status menjadi dikembalikan?"
+                                                    href="javascript:">Dikembalikan</a>
+
+                                                <a class="dropdown-item route-alert"
+                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="Ubah status menjadi gagal?"
+                                                    href="javascript:">Gagal</a>
+
+                                                <a class="dropdown-item route-alert"
+                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="Ubah status menjadi dibatalkan?"
+                                                   href="javascript:">Dibatalkan</a>
                                             @endif
                                         </div>
                                     </div>
                                 </div>
                                 <div>
                                     <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                        <span class="title-color">{{ translate('Payment Status') }}</span>
+                                        <span class="title-color">Status Pembayaran</span>
                                         @if($order['payment_method'] == 'offline_payment' && $order->offline_payment?->status != 1)
                                             <label class="switcher payment-status-text">
                                                 <input class="switcher_input offline-payment-status-alert" type="checkbox" name="payment_status" value="1" id="payment_status_switch"
@@ -530,26 +447,26 @@
                                     </div>
                                 </div>
                             @endif
-                            @if($order->customer || $order->is_guest == 1)
+                            @if($order->customer)
                                 <div>
-                                    <label class="font-weight-bold text-dark fz-14">{{translate('Delivery_Date_&_Time')}} {{$order['delivery_date'] > \Carbon\Carbon::now()->format('Y-m-d')? translate('(Scheduled)') : ''}}</label>
+                                    <label class="font-weight-bold text-dark fz-14">Tanggal & Waktu Pesanan {{$order['delivery_date'] > \Carbon\Carbon::now()->format('Y-m-d')? 'Dijadwalkan' : ''}}</label>
                                     <div class="d-flex gap-2 flex-wrap flex-xxl-nowrap">
                                         <input name="delivery_date" type="date" class="form-control delivery-date" value="{{$order['delivery_date'] ?? ''}}">
                                         <input name="delivery_time" type="time" class="form-control delivery-time" value="{{$order['delivery_time'] ?? ''}}">
                                     </div>
 
                                 </div>
-                                @if($order['order_type']!='take_away' && $order['order_type'] != 'pos' && $order['order_type'] != 'dine_in' && !$order['delivery_man_id'])
+                                @if($order['order_type']!='take_away' && $order['order_type'] != 'pos' && !$order['delivery_man_id'])
 
                                     <a href="#" class="btn btn-primary btn-block d-flex gap-1 justify-content-center align-items-center" data-toggle="modal" data-target="#assignDeliveryMan">
                                         <img width="17" src="{{asset('assets/admin/img/icons/assain_delivery_man.png')}}" alt="">
-                                        {{translate('Assign_Delivery_Man')}}
+                                        Tetapkan Kurir
                                     </a>
                                 @endif
                             @endif
                             <div>
                                 @if($order['order_type'] != 'pos' && $order['order_type'] != 'take_away' && ($order['order_status'] != DELIVERED && $order['order_status'] != RETURNED && $order['order_status'] != CANCELED && $order['order_status'] != FAILED && $order['order_status'] != COMPLETED))
-                                    <label class="font-weight-bold text-dark fz-14">{{translate('Food_Preparation_Time')}}</label>
+                                    <label class="font-weight-bold text-dark fz-14">Waktu Persiapan Pesanan</label>
                                     <div class="form-control justify-content-between">
                                         <span class="ml-2 ml-sm-3 ">
                                         <i class="tio-timer d-none" id="timer-icon"></i>
@@ -568,10 +485,10 @@
                                     <span class="card-header-icon">
                                         <i class="tio-user text-dark"></i>
                                     </span>
-                                            <span>{{ translate('delivery_man') }}</span>
+                                            <span>Kurir</span>
                                             <a  href="#"  data-toggle="modal" data-target="#assignDeliveryMan"
                                                 class="text--base cursor-pointer ml-auto">
-                                                {{translate('Change')}}
+                                                Ubah
                                             </a>
                                         </h4>
                                         <div class="media flex-wrap gap-3">
@@ -580,7 +497,7 @@
                                             </a>
                                             <div class="media-body d-flex flex-column gap-1">
                                                 <a target="" href="#" class="text-dark"><span>{{$order->delivery_man['f_name'].' '.$order->delivery_man['l_name'] ?? ''}}</span></a>
-                                                <span class="text-dark"> <span>{{$order->delivery_man['orders_count']}}</span> {{translate('Orders')}}</span>
+                                                <span class="text-dark"> <span>{{$order->delivery_man['orders_count']}}</span> Pesanan</span>
                                                 <span class="text-dark break-all">
                                             <i class="tio-call-talking-quiet mr-2"></i>
                                             <a href="tel:{{$order->delivery_man['phone']}}" class="text-dark">{{$order->delivery_man['phone'] ?? ''}}</a>
@@ -594,10 +511,10 @@
                                         <hr class="w-100">
                                         @if($order['order_status']=='out_for_delivery')
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <h5>{{translate('Last_location')}}</h5>
+                                                <h5>Lokasi Terakhir</h5>
                                             </div>
-                                            @php($origin=\App\Model\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->first())
-                                            @php($current=\App\Model\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->latest()->first())
+                                            @php($origin=\App\Models\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->first())
+                                            @php($current=\App\Models\DeliveryHistory::where(['deliveryman_id'=>$order['delivery_man_id'],'order_id'=>$order['id']])->latest()->first())
                                             @if(isset($origin))
                                                 <a target="_blank" class="text-dark"
                                                    title="Delivery Boy Last Location" data-toggle="tooltip" data-placement="top"
@@ -606,28 +523,28 @@
                                                 </a>
                                             @else
                                                 <a href="javascript:" data-toggle="tooltip" class="text-dark"
-                                                   data-placement="top" title="{{translate('Waiting for location...')}}">
-                                                    <img width="13" src="{{asset('assets/admin/img/icons/location.png')}}" alt="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{translate('Waiting for location...')}}
+                                                   data-placement="top" title="Menunggu lokasi ...">
+                                                    <img width="13" src="{{asset('assets/admin/img/icons/location.png')}}" alt="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Menunggu lokasi ...
                                                 </a>
                                             @endif
                                         @else
                                             <a href="javascript:" class="text-dark last-location-view"
                                                data-toggle="tooltip" data-placement="top"
-                                               title="{{translate('Only available when order is out for delivery!')}}">
-                                                <img width="13" src="{{asset('assets/admin/img/icons/location.png')}}" alt="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{translate('Only available when order is out for delivery!')}}
+                                               title="Hanya tersedia ketika pesanan dalam pengiriman">
+                                                <img width="13" src="{{asset('assets/admin/img/icons/location.png')}}" alt="">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Hanya tersedia ketika pesanan dalam pengiriman
                                             </a>
                                         @endif
                                     </div>
                                 </div>
                             @endif
 
-                            @if($order['order_type']!='take_away' && $order['order_type'] != 'pos' && $order['order_type'] != 'dine_in')
+                            @if($order['order_type']!='take_away' && $order['order_type'] != 'pos')
                             <div class="card">
                                 <div class="card-body">
                                     <div class="mb-4 d-flex gap-2 justify-content-between">
                                         <h4 class="mb-0 d-flex gap-2">
                                             <i class="tio-user text-dark"></i>
-                                            {{translate('Delivery_Informatrion')}}
+                                            Informasi Pengiriman
                                         </h4>
 
                                         <div class="edit-btn cursor-pointer" data-toggle="modal" data-target="#deliveryInfoModal">
@@ -635,42 +552,19 @@
                                         </div>
                                     </div>
                                     <div class="delivery--information-single flex-column">
-                                        @php($address=\App\Model\CustomerAddress::find($order['delivery_address_id']))
+                                        @php($address=\App\Models\CustomerAddress::find($order['delivery_address_id']))
                                         <div class="d-flex">
-                                            <div class="name">{{ translate('Name') }}</div>
+                                            <div class="name">Nama</div>
                                             <div class="info">{{ $address? $address['contact_person_name']: '' }}</div>
                                         </div>
                                         <div class="d-flex">
-                                            <div class="name">{{translate('Contact')}}</div>
+                                            <div class="name">Kontak</div>
                                             <a href="tel:{{ $address? $address['contact_person_number']: '' }}" class="info">{{ $address? $address['contact_person_number']: '' }}</a>
                                         </div>
                                         <div class="d-flex">
-                                            <div class="name">{{translate('floor')}}</div>
-                                            <div class="info">{{$address['floor'] ?? ''}}</div>
-                                        </div>
-                                        <div class="d-flex">
-                                            <div class="name">{{translate('house')}}</div>
-                                            <div class="info">{{$address['house'] ?? ''}}</div>
-                                        </div>
-                                        <div class="d-flex">
-                                            <div class="name">{{translate('road')}}</div>
-                                            <div class="info">{{$address['road'] ?? ''}}</div>
-                                        </div>
-                                        <div class="d-flex">
-                                            <div class="name">{{translate('address')}}</div>
+                                            <div class="name">Alamat</div>
                                             <div class="info">{{$address['address'] ?? ''}}</div>
                                         </div>
-                                        @if($order->order_area)
-                                            <div class="d-flex">
-                                                <div class="name">{{translate('Area')}}</div>
-                                                <div class="info edit-btn cursor-pointer">
-                                                    {{ $order?->order_area?->area?->area_name }}
-                                                    @if($order?->branch?->delivery_charge_setup?->delivery_charge_type == 'area')
-                                                        <i class="tio-edit" data-toggle="modal" data-target="#editArea"></i>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @endif
                                         @php($googleMapStatus = \App\CentralLogics\Helpers::get_business_settings('google_map_status'))
                                         @if($googleMapStatus)
                                             @if(isset($address['address']) && isset($address['latitude']) && isset($address['longitude']))
@@ -700,11 +594,11 @@
                                 <div class="card-body">
                                     <h5 class="form-label mb-3">
                                         <span class="card-header-icon"><i class="tio-shopping-basket"></i></span>
-                                        <span>{{translate('Offline payment information')}}</span>
+                                        <span>Informasi Pembayaran Offline</span>
                                     </h5>
                                     <div class="offline-payment--information-single flex-column mt-3">
                                         <div class="d-flex">
-                                            <span class="name">{{ translate('payment_note') }}</span>
+                                            <span class="name">Catatan Pembayaran</span>
                                             <span class="info">{{ $payment['payment_note'] }}</span>
                                         </div>
                                         @foreach($payment['method_information'] as $infos)
@@ -725,26 +619,17 @@
                         <div class="card-body">
                             <h4 class="mb-4 d-flex gap-2">
                                 <i class="tio-user text-dark"></i>
-                                {{ translate('Customer Information') }}
+                                Informasi Pelanggan
                             </h4>
-                            @if($order->is_guest == 1)
-                                <div class="media flex-wrap gap-3 align-items-center">
-                                    <a target="#" class="" >
-                                        <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="">
-                                    </a>
-                                    <div class="media-body d-flex flex-column gap-1">
-                                        <a target="#"  class="text-dark text-capitalize"><strong>{{translate('Guest Customer')}}</strong></a>
-                                    </div>
-                                </div>
-                            @else
                                 @if($order->customer)
                                     <div class="media flex-wrap gap-3">
                                         <a target="_blank" class="" href="{{route('admin.customer.view',[$order->customer['id']])}}">
-                                            <img class="avatar avatar-lg rounded-circle" src="{{$order->customer?->imageFullPath}}" alt="Image">
+                                            <img class="avatar avatar-lg rounded-circle" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" 
+                                            src="{{$order->customer?->imageFullPath}}" alt="Image">
                                         </a>
                                         <div class="media-body d-flex flex-column gap-1">
                                             <a target="_blank" href="{{route('admin.customer.view',[$order->customer['id']])}}" class="text-dark"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
-                                            <span class="text-dark">{{$order->customer['orders_count']}} {{translate('Orders')}}</span>
+                                            <span class="text-dark">{{$order->customer['orders_count']}} Pesanan</span>
                                             <span class="text-dark">
                                             <i class="tio-call-talking-quiet mr-2"></i>
                                             <a class="text-dark break-all" href="tel:{{$order->customer['phone']}}">{{$order->customer['phone']}}</a>
@@ -756,28 +641,16 @@
                                         </div>
                                     </div>
                                 @endif
-                                @if($order->user_id == null)
-                                    <div class="media flex-wrap gap-3 align-items-center">
-                                        <a target="#" class="" >
-                                            <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="">
-                                        </a>
-                                        <div class="media-body d-flex flex-column gap-1">
-                                            <a target="#"  class="text-dark text-capitalize"><strong>{{translate('walking_customer')}}</strong></a>
-                                        </div>
-                                    </div>
-                                @endif
                                 @if($order->user_id != null && !isset($order->customer))
                                     <div class="media flex-wrap gap-3 align-items-center">
                                         <a target="#" class="" >
                                             <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="">
                                         </a>
                                         <div class="media-body d-flex flex-column gap-1">
-                                            <a target="#"  class="text-dark text-capitalize"><strong>{{translate('Customer_not_available')}}</strong></a>
+                                            <a target="#"  class="text-dark text-capitalize"><strong>Pelanggan Tidak Tersedia</strong></a>
                                         </div>
                                     </div>
                                 @endif
-                            @endif
-
                         </div>
                     </div>
 
@@ -785,7 +658,7 @@
                         <div class="card-body">
                             <h4 class="mb-4 d-flex gap-2">
                                 <i class="tio-user text-dark"></i>
-                                {{translate('Branch Information')}}
+                                Informasi Cabang
                             </h4>
                             <div class="media flex-wrap gap-3">
                                 <div class="">
@@ -794,7 +667,7 @@
                                 <div class="media-body d-flex flex-column gap-1">
                                     @if(isset($order->branch))
                                         <span class="text-dark"><span>{{$order->branch?->name}}</span></span>
-                                        <span class="text-dark"> <span>{{$order->branch['orders_count']}}</span> {{translate('Orders served')}}</span>
+                                        <span class="text-dark"> <span>{{$order->branch['orders_count']}}</span> Pesanan Dilakukan</span>
                                         @if($order->branch['phone'])
                                             <span class="text-dark break-all">
                                                 <i class="tio-call-talking-quiet mr-2"></i>
@@ -807,7 +680,7 @@
                                     </span>
                                     @else
                                         <span class="fz--14px text--title font-semibold text-hover-primary d-block">
-                                            {{translate('Branch Deleted')}}
+                                            Cabang Dihapus
                                         </span>
                                     @endif
 
@@ -833,7 +706,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title fs-5" id="assignDeliveryManLabel">{{translate('Assign_Delivery_Man')}}</h4>
+                    <h4 class="modal-title fs-5" id="assignDeliveryManLabel">Tetapkan Kurir</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -849,7 +722,7 @@
                                     </div>
                                     <span>{{$deliveryMan['f_name'].' '.$deliveryMan['l_name']}}</span>
                                 </div>
-                                <a id="{{$deliveryMan->id}}" class="btn btn-primary btn-sm assign-deliveryman">{{translate('Assign')}}</a>
+                                <a id="{{$deliveryMan->id}}" class="btn btn-primary btn-sm assign-deliveryman">Tetapkan</a>
                             </li>
                         @endforeach
                     </ul>
@@ -864,7 +737,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title h4"
-                        id="mySmallModalLabel">{{translate('reference')}} {{translate('code')}} {{translate('add')}}</h5>
+                        id="mySmallModalLabel">Tambah Kode Referensi</h5>
                     <button type="button" class="btn btn-xs btn-icon btn-ghost-secondary" data-dismiss="modal"
                             aria-label="Close">
                         <i class="tio-clear tio-lg"></i>
@@ -876,9 +749,9 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <input type="text" name="transaction_reference" class="form-control"
-                                   placeholder="{{translate('EX : Code123')}}" required>
+                                   placeholder="Contoh : xxxxxx" required>
                         </div>
-                        <button class="btn btn-primary">{{translate('submit')}}</button>
+                        <button class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
 
@@ -891,7 +764,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title h4" id="mySmallModalLabel">{{translate('Update_Delivery_Information')}}</h5>
+                    <h5 class="modal-title h4" id="mySmallModalLabel">Perbarui Informasi Pesanan</h5>
                     <button type="button" class="btn btn-xs btn-icon btn-ghost-secondary" data-dismiss="modal" aria-label="Close">
                         <i class="tio-clear tio-lg"></i>
                     </button>
@@ -905,46 +778,25 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label>{{translate('Type')}}</label>
+                                        <label>Jenis</label>
                                         <input type="text" name="address_type" class="form-control"
-                                               placeholder="{{translate('EX : Home')}}" value="{{ $address['address_type'] ?? '' }}" required>
+                                               placeholder="Contoh : Rumah" value="{{ $address['address_type'] ?? '' }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="input-label" for="">{{ translate('contact_person_name') }}
+                                        <label class="input-label" for="">Nama
                                             <span class="input-label-secondary text-danger">*</span></label>
                                         <input type="text" class="form-control" name="contact_person_name"
-                                               placeholder="{{translate('EX : Jhon Doe')}}" value="{{ $address['contact_person_name'] ?? '' }}" required>
+                                               placeholder="Contoh : John Doe" value="{{ $address['contact_person_name'] ?? '' }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="input-label" for="">{{ translate('Contact Number') }}
+                                        <label class="input-label" for="">No. Hp
                                             <span class="input-label-secondary text-danger">*</span></label>
                                         <input type="text" class="form-control" name="contact_person_number"
-                                               placeholder="{{translate('EX : 01888888888')}}" value="{{ $address['contact_person_number']?? '' }}" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>{{translate('floor')}}</label>
-                                        <input type="text" class="form-control" name="floor"
-                                               placeholder="{{translate('EX : 5')}}" value="{{ $address['floor'] ?? '' }}" >
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>{{translate('house')}}</label>
-                                        <input type="text" class="form-control" name="house"
-                                               placeholder="{{translate('EX : 21/B')}}" value="{{ $address['house'] ?? '' }}" >
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>{{translate('road')}}</label>
-                                        <input type="text" class="form-control" name="road"
-                                               placeholder="{{translate('EX : Baker Street')}}" value="{{ $address['road'] ?? '' }}" >
+                                               placeholder="Contoh : 081234xxxxx" value="{{ $address['contact_person_number']?? '' }}" required>
                                     </div>
                                 </div>
 
@@ -953,18 +805,18 @@
                                     @if($order?->branch?->delivery_charge_setup?->delivery_charge_type == 'distance')
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="input-label" for="">{{ translate('latitude') }}
+                                                <label class="input-label" for="">Latitude
                                                     <span class="input-label-secondary text-danger">*</span></label>
                                                 <input type="text" class="form-control" name="latitude"
-                                                       placeholder="{{translate('EX : 23.796584198263794')}}" value="{{ $address['latitude'] ?? '' }}">
+                                                       placeholder="Contoh : -8.200786388659255" value="{{ $address['latitude'] ?? '' }}" required>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label class="input-label" for="">{{ translate('longitude') }}<span
+                                                <label class="input-label" for="">Longitude<span
                                                         class="input-label-secondary text-danger">*</span></label>
                                                 <input type="text" class="form-control" name="longitude"
-                                                       placeholder="{{translate('EX : 23.796584198263794')}}" value="{{ $address['longitude'] ?? '' }}" required>
+                                                       placeholder="Contoh : -8.200786388659255" value="{{ $address['longitude'] ?? '' }}" required>
                                             </div>
                                         </div>
                                     @endif
@@ -972,13 +824,13 @@
 
                                 <div class="col-md-12">
                                     <div class="form-group">
-                                        <label>{{translate('Address')}}<span class="input-label-secondary text-danger">*</span></label>
-                                        <textarea class="form-control" name="address" cols="30" rows="3" placeholder="{{translate('EX : Dhaka,_Bangladesh')}}" required>{{ $address['address'] ?? '' }}</textarea>
+                                        <label>Alamat<span class="input-label-secondary text-danger">*</span></label>
+                                        <textarea class="form-control" name="address" cols="30" rows="3" placeholder="Contoh : Jl. PB SudirmanKec. Patrang, Kabupaten Jember" required>{{ $address['address'] ?? '' }}</textarea>
                                     </div>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <button class="btn btn-primary">{{translate('submit')}}</button>
+                                <button class="btn btn-primary">Simpan</button>
                             </div>
                         </div>
                     </form>
@@ -993,7 +845,7 @@
             <div class="modal-dialog modal-sm" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title custom-text-size" id="exampleModalLabel">{{ translate('Need time to prepare the food') }}</h5>
+                        <h5 class="modal-title custom-text-size" id="exampleModalLabel">Butuh waktu untuk menyiapkan pesanan?</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -1002,20 +854,20 @@
                         @csrf
                         <div class="modal-body">
                             <div class="form-group text-center">
-                                <input type="number" min="0" name="extra_minute" id="extra_minute" class="form-control" placeholder="{{translate('EX : 20')}}" required>
+                                <input type="number" min="0" name="extra_minute" id="extra_minute" class="form-control" placeholder="Contoh : 20" required>
                             </div>
                             <div class="form-group flex-between predefined-time-input">
-                                <div class="badge text-info shadow li-pointer" data-time="10">{{ translate('10min') }}</div>
-                                <div class="badge text-info shadow li-pointer" data-time="20">{{ translate('20min') }}</div>
-                                <div class="badge text-info shadow li-pointer" data-time="30">{{ translate('30min') }}</div>
-                                <div class="badge text-info shadow li-pointer" data-time="40">{{ translate('40min') }}</div>
-                                <div class="badge text-info shadow li-pointer" data-time="50">{{ translate('50min') }}</div>
-                                <div class="badge text-info shadow li-pointer" data-time="60">{{ translate('60min') }}</div>
+                                <div class="badge text-info shadow li-pointer" data-time="10">10 Menit</div>
+                                <div class="badge text-info shadow li-pointer" data-time="20">20 Menit</div>
+                                <div class="badge text-info shadow li-pointer" data-time="30">30 Menit</div>
+                                <div class="badge text-info shadow li-pointer" data-time="40">40 Menit</div>
+                                <div class="badge text-info shadow li-pointer" data-time="50">50 Menit</div>
+                                <div class="badge text-info shadow li-pointer" data-time="60">60 Menit</div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ translate('Close') }}</button>
-                            <button type="submit" class="btn btn-primary">{{ translate('Submit') }}</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -1028,28 +880,24 @@
             <div class="modal-dialog modal-lg offline-details">
                 <div class="modal-content">
                     <div class="modal-header justify-content-center">
-                        <h4 class="modal-title pb-2">{{translate('Payment_Verification')}}</h4>
+                        <h4 class="modal-title pb-2">Verifikasi Pembayaran</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                     </div>
                     <div class="card">
                         <div class="modal-body mx-2">
-                            <p class="text-danger">{{translate('Please Check & Verify the payment information whether it is correct or not before confirm the order.')}}</p>
-                            <h5>{{translate('customer_Information')}}</h5>
+                            <p class="text-danger">Harap Periksa & Verifikasi informasi pembayaran apakah benar atau tidak sebelum mengkonfirmasi pesanan.</p>
+                            <h5>Informasi Pelanggan</h5>
 
                             <div class="card-body">
-                                @if($order->is_guest == 0)
-                                    <p>{{ translate('name') }} : {{ $order->customer ? $order->customer->f_name.' '. $order->customer->l_name: ''}} </p>
-                                    <p>{{ translate('contact') }} : {{ $order->customer ? $order->customer->phone: ''}}</p>
-                                @else
-                                    <p>{{ translate('guest_customer') }} </p>
-                                @endif
+                                <p>Nama : {{ $order->customer ? $order->customer->f_name.' '. $order->customer->l_name: ''}} </p>
+                                <p>Kontak : {{ $order->customer ? $order->customer->phone: ''}}</p>
                             </div>
 
-                            <h5>{{translate('Payment_Information')}}</h5>
+                            <h5>Informasi Pembayaran</h5>
                             @php($payment = json_decode($order->offline_payment?->payment_info, true))
                             <div class="row card-body">
                                 <div class="col-md-6">
-                                    <p>{{ translate('Payment_Method') }} : {{ $payment['payment_name'] }}</p>
+                                    <p>Sumber Pembayaran : {{ $payment['payment_name'] == 'cash' ? 'Tunai' : 'Non Tunai' }}</p>
                                     @foreach($payment['method_fields'] as $fields)
                                         @foreach($fields as $field_key => $field)
                                             <p>{{ $field_key }} : {{ $field }}</p>
@@ -1057,7 +905,7 @@
                                     @endforeach
                                 </div>
                                 <div class="col-md-6">
-                                    <p>{{ translate('payment_note') }} : {{ $payment['payment_note'] }}</p>
+                                    <p>Catatan Pembayaran : {{ $payment['payment_note'] }}</p>
                                     @foreach($payment['method_information'] as $infos)
                                         @foreach($infos as $info_key => $info)
                                             <p>{{ $info_key }} : {{ $info }}</p>
@@ -1069,63 +917,14 @@
                     </div>
                     <div class="btn--container justify-content-center my-2 mx-3">
                         @if($order->offline_payment?->status == 0)
-                            <a type="reset" class="btn btn-secondary verify-offline-payment" data-status="2">{{ translate('Payment_Did_Not_Received') }}</a>
+                            <a type="reset" class="btn btn-secondary verify-offline-payment" data-status="2">Pembayaran Tidak Diterima</a>
                         @endif
-                        <a type="submit" class="btn btn-primary verify-offline-payment" data-status="1">{{ translate('Yes,_Payment_Received') }}</a>
+                        <a type="submit" class="btn btn-primary verify-offline-payment" data-status="1">Ya, Pembayaran Diterima</a>
                     </div>
                 </div>
             </div>
         </div>
     @endif
-
-    <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="editArea" id="editArea"
-         aria-hidden="true">
-        <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title h4" id="mySmallModalLabel">{{translate('Update_Delivery_Area')}}</h5>
-                    <button type="button" class="btn btn-xs btn-icon btn-ghost-secondary" data-dismiss="modal" aria-label="Close">
-                        <i class="tio-clear tio-lg"></i>
-                    </button>
-                </div>
-                <form action="{{ route('admin.orders.update-order-delivery-area', ['order_id' => $order->id]) }}" method="post">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="row">
-
-                            <?php
-                            $branch = \App\Model\Branch::with(['delivery_charge_setup', 'delivery_charge_by_area'])
-                                ->where(['id' => $order['branch_id']])
-                                ->first(['id', 'name', 'status']);
-                            ?>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>{{translate('Delivery Area')}}</label>
-                                    <select name="selected_area_id" class="form-control js-select2-custom-x mx-1" id="areaDropdown" >
-                                        <option value="">{{ translate('Select Area') }}</option>
-                                        @foreach($branch->delivery_charge_by_area as $area)
-                                            <option value="{{$area['id']}}" {{ (isset($order->order_area) && $order->order_area->area_id == $area['id']) ? 'selected' : '' }}
-                                            data-charge="{{$area['delivery_charge']}}" >{{ $area['area_name'] }} - ({{ Helpers::set_symbol($area['delivery_charge']) }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="input-label" for="">{{ translate('Delivery Charge') }} ({{ Helpers::currency_symbol() }})</label>
-                                <input type="number" class="form-control" name="delivery_charge" id="deliveryChargeInput" value="" readonly>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-end">
-                            <button class="btn btn-primary">{{translate('update')}}</button>
-                        </div>
-                    </div>
-                </form>
-
-            </div>
-        </div>
-    </div>
-
 @endsection
 
 @push('script_2')
@@ -1164,14 +963,14 @@
 
         $('.offline-payment-status-alert').on('click', function () {
             Swal.fire({
-                title: '{{translate("Payment_is_Not_Verified")}}',
-                text: '{{ translate("You can not change status of unverified offline payment") }}',
+                title: 'Pembayaran tidak terverifikasi',
+                text: 'Anda tidak dapat mengubah status pembayaran offline yang belum diverifikasi',
                 type: 'question',
                 showCancelButton: true,
                 showConfirmButton: false,
                 cancelButtonColor: 'default',
                 confirmButtonColor: '#01684b',
-                cancelButtonText: '{{translate("Close")}}',
+                cancelButtonText: 'Tutup',
                 confirmButtonText: '',
                 reverseButtons: true
             }).then((result) => {
@@ -1181,15 +980,15 @@
 
         $('.offline-payment-order-alert').on('click', function () {
             Swal.fire({
-                title: '{{translate("Payment_is_Not_Verified")}}',
-                text: '{{ translate("You can not change order status to this status. Please Check & Verify the payment information whether it is correct or not. You can only change order status to failed or cancel if payment is not verified.") }}',
+                title: 'Pembayaran tidak terverifikasi',
+                text: 'Anda tidak dapat mengubah status pesanan ke status ini. Harap Periksa & Verifikasi informasi pembayaran apakah sudah benar atau belum. Anda hanya dapat mengubah status pesanan menjadi gagal atau batal jika pembayaran belum diverifikasi.',
                 type: 'question',
                 showCancelButton: true,
                 showConfirmButton: false,
                 cancelButtonColor: 'default',
                 confirmButtonColor: '#01684b',
-                cancelButtonText: '{{translate("Close")}}',
-                confirmButtonText: '{{translate("Proceed")}}',
+                cancelButtonText: 'Tutup',
+                confirmButtonText: 'Proses',
                 reverseButtons: true
             }).then((result) => {
 
@@ -1203,7 +1002,7 @@
                 data: $('#product_form').serialize(),
                 success: function (data) {
                     if(data.status == true) {
-                        toastr.success('{{translate("Delivery man successfully assigned/changed")}}', {
+                        toastr.success('Kurir berhasil ditetapkan atau diubah', {
                             CloseButton: true,
                             ProgressBar: true
                         });
@@ -1211,14 +1010,15 @@
                             location.reload();
                         }, 2000)
                     }else{
-                        toastr.error('{{translate("Deliveryman man can not assign/change in that status")}}', {
+                        toastr.error('Kurir tidak dapat ditetapkan atau diubah pada status ini', {
                             CloseButton: true,
                             ProgressBar: true
                         });
                     }
                 },
-                error: function () {
-                    toastr.error('{{translate("Add valid data")}}', {
+                error: function (xhr) {
+                    console.log(xhr.responseText)
+                    toastr.error('Tambahkan data yang valid', {
                         CloseButton: true,
                         ProgressBar: true
                     });
@@ -1227,7 +1027,7 @@
         }
 
         function last_location_view() {
-            toastr.warning('{{translate("Only available when order is out for delivery!")}}', {
+            toastr.warning('Hanya tersedia ketika pesanan dalam pengiriman', {
                 CloseButton: true,
                 ProgressBar: true
             });
@@ -1250,17 +1050,17 @@
                 success: function (data) {
                     console.log(data)
                     if(data.status == true && name == 'delivery_date') {
-                        toastr.success('{{translate("Delivery date changed successfully")}}', {
+                        toastr.success('Tanggal pengiriman berhasil diubah', {
                             CloseButton: true,
                             ProgressBar: true
                         });
                     }else if(data.status == true && name == 'delivery_time'){
-                        toastr.success('{{translate("Delivery time changed successfully")}}', {
+                        toastr.success('Waktu pengiriman berhasil diubah', {
                             CloseButton: true,
                             ProgressBar: true
                         });
                     }else {
-                        toastr.error('{{translate("Order No is not valid")}}', {
+                        toastr.error('{Pesanan tidak valid', {
                             CloseButton: true,
                             ProgressBar: true
                         });
@@ -1268,7 +1068,7 @@
                     location.reload();
                 },
                 error: function () {
-                    toastr.error('{{translate("Add valid data")}}', {
+                    toastr.error('Tambahkan data yang valid', {
                         CloseButton: true,
                         ProgressBar: true
                     });
@@ -1284,12 +1084,12 @@
                     //console.log(data);
                     location.reload();
                     if(data.status == true) {
-                        toastr.success('{{ translate("offline payment verify status changed") }}', {
+                        toastr.success('Status verifikasi pembayaran offline berubah', {
                             CloseButton: true,
                             ProgressBar: true
                         });
                     }else{
-                        toastr.error('{{ translate("offline payment verify status not changed") }}', {
+                        toastr.error('Status verifikasi pembayaran offline tidak berubah', {
                             CloseButton: true,
                             ProgressBar: true
                         });
@@ -1309,7 +1109,7 @@
 
             const expire_time = "{{ $order['remaining_time'] }}";
             var countDownDate = new Date(expire_time).getTime();
-            const time_zone = "{{ Helpers::get_business_settings('time_zone') ?? 'UTC' }}";
+            const time_zone = "{{ \App\CentralLogics\Helpers::get_business_settings('time_zone') ?? 'Asia/Jakarta' }}";
 
             var x = setInterval(function() {
                 var now = new Date(new Date().toLocaleString("en-US", {timeZone: time_zone})).getTime();
@@ -1324,7 +1124,7 @@
 
                 document.getElementById("timer-icon").classList.remove("d-none");
                 document.getElementById("edit-icon").classList.remove("d-none");
-                var $text = (distance < 0) ? "{{ translate('over') }}" : "{{ translate('left') }}";
+                var $text = (distance < 0) ? "Lebih" : "Kiri";
                 document.getElementById("counter").innerHTML = Math.abs(days) + "d " + Math.abs(hours) + "h " + Math.abs(minutes) + "m " + Math.abs(seconds) + "s " + $text;
                 if (distance < 0) {
                     var element = document.getElementById('counter');

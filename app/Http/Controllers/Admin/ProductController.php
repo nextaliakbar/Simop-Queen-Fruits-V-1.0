@@ -71,7 +71,7 @@ class ProductController extends Controller
         return response()->json(['options'=> $response]);
     }
 
-    public function store(Request $request) : JsonResponse
+    public function store(Request $request): JsonResponse
     {
         
         $validator = Validator::make($request->all(),[

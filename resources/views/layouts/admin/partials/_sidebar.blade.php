@@ -5,7 +5,7 @@
             <div class="navbar-vertical-footer-offset">
                 <div class="navbar-brand-wrapper justify-content-between">
                     <!-- Logo -->
-                    {{-- @php($restaurant_logo=\App\Model\BusinessSetting::where(['key'=>'logo'])->first()->value) --}}
+                    {{-- @php($restaurant_logo=\App\Models\BusinessSetting::where(['key'=>'logo'])->first()->value) --}}
                     <a class="navbar-brand" href="{{route('admin.dashboard')}}" aria-label="Front">
                         <img class="navbar-brand-logo" style="object-fit: contain;"
                              src="{{asset('storage/store/logo_store_2.png')}}"
@@ -57,7 +57,6 @@
 {{--                        @endif--}}
                         <!-- End Dashboards -->
 
-{{--
                         <!-- Pos Management -->
                         @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['pos_management']))
 
@@ -73,7 +72,7 @@
                                         <a class="nav-link " href="{{route('admin.pos.index')}}"
                                            title="kasir">
                                             <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="text-truncate">Penjualan Baru</span>
+                                            <span class="text-truncate">Tambah Penjualan</span>
                                         </a>
                                     </li>
                                     <li class="nav-item {{Request::is('admin/pos/orders')?'active':''}}">
@@ -82,7 +81,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                 Daftar Penjualan
                                                 <span class="badge badge-soft-info badge-pill ml-1">
-                                                    {{\App\Model\Order::Pos()->count()}}
+                                                    {{\App\Models\Order::Pos()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -105,7 +104,7 @@
                                    href="{{route('admin.verify-offline-payment', ['pending'])}}" title="verifikasi-pembayaran-offline">
                                     <i class="tio-shopping-basket nav-icon"></i>
                                     <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                        Verifikasi Pembayaran Offline
+                                        Verifikasi Pembayaran
                                     </span>
                                 </a>
                             </li>
@@ -125,7 +124,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                 <span>Semua</span>
                                                 <span class="badge badge-soft-info badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -136,7 +135,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                 <span>Tertunda</span>
                                                 <span class="badge badge-soft-info badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'pending'])->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'pending'])->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -145,9 +144,9 @@
                                         <a class="nav-link " href="{{route('admin.orders.list',['confirmed'])}}" title="">
                                             <span class="tio-circle nav-indicator-icon"></span>
                                             <span class="text-truncate sidebar--badge-container">
-                                                Terkonfirmasi
+                                                Dikonfirmasi
                                                     <span class="badge badge-soft-success badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'confirmed'])->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'confirmed'])->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -158,7 +157,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                     Diproses
                                                     <span class="badge badge-soft-warning badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'processing'])->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'processing'])->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -170,7 +169,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                     Dalam Pengiriman
                                                     <span class="badge badge-soft-warning badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'out_for_delivery'])->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'out_for_delivery'])->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -181,7 +180,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                     Terkirim
                                                     <span class="badge badge-soft-success badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'delivered'])->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'delivered'])->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -192,7 +191,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                     Dikembalian
                                                     <span class="badge badge-soft-danger badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'returned'])->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'returned'])->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -203,7 +202,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                 Gagal Terkirim
                                                 <span class="badge badge-soft-danger badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'failed'])->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'failed'])->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -215,7 +214,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                 Dibatalkan
                                                     <span class="badge badge-soft-dark badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where(['order_status'=>'canceled'])->notSchedule()->count()}}
+                                                    {{\App\Models\Order::notPos()->where(['order_status'=>'canceled'])->notSchedule()->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -227,7 +226,7 @@
                                             <span class="text-truncate sidebar--badge-container">
                                                 Penjadwalan
                                                     <span class="badge badge-soft-info badge-pill ml-1">
-                                                    {{\App\Model\Order::notPos()->notDineIn()->where('delivery_date','>',\Carbon\Carbon::now()->format('Y-m-d'))->count()}}
+                                                    {{\App\Models\Order::notPos()->where('delivery_date','>',\Carbon\Carbon::now()->format('Y-m-d'))->count()}}
                                                 </span>
                                             </span>
                                         </a>
@@ -236,7 +235,7 @@
                             </li>
                             <!-- End Pages -->
                         @endif
---}}
+
 
                         <!-- Product Management -->
                         @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['product_management']))

@@ -15,6 +15,11 @@ class Category extends Model
         'priority' => 'integer'
     ];
 
+    public function scopeActive($query)
+    {
+        return $query->where('status', '=', 1);
+    }
+
     public function childes(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');

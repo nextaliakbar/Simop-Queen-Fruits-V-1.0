@@ -9,24 +9,21 @@
             <!-- List Dot -->
             <ul class="list-inline-menu justify-content-center justify-content-md-end">
                 <li>
-                    {{-- <a href="{{route('admin.business-settings.store.store-setup')}}"> --}}
-                    <a href="">
+                    <a href="{{route('admin.business-settings.store.store-setup')}}">
                         <span>Pengaturan Bisnis</span>
                         <img width="12" class="avatar-img rounded-0" src="{{asset('assets/admin/img/icons/business_setup.png')}}" alt="Image Description">
                     </a>
                 </li>
 
                 <li>
-                    {{-- <a href="{{route('admin.settings')}}"> --}}
-                    <a href="">
+                    <a href="{{route('admin.settings')}}">
                         <span>Profile</span>
                         <img width="12" class="avatar-img rounded-0" src="{{asset('assets/admin/img/icons/profile.png')}}" alt="Image Description">
                     </a>
                 </li>
 
                 <li>
-                    {{-- <a href="{{route('admin.dashboard')}}"> --}}
-                    <a href="">
+                    <a href="{{route('admin.dashboard')}}">
                         <span>Dashboard</span>
                         <img width="12" class="avatar-img rounded-0" src="{{asset('assets/admin/img/icons/home.png')}}" alt="Image Description">
                     </a>
