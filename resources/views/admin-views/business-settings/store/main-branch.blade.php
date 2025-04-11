@@ -57,7 +57,7 @@
                                             <i class="tio-info-outined"
                                                data-toggle="tooltip"
                                                data-placement="top"
-                                               title="Waktu persiapan akan ditampilkan dipelanggan">
+                                               title="Waktu persiapan akan ditampilkan di pelanggan">
                                             </i>
                                         </label>
                                         <input value="{{ $branch['preparation_time'] }}" type="number" name="preparation_time" class="form-control"

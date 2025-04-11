@@ -1,21 +1,15 @@
-@extends('layouts.admin.app')
+@extends('layouts.branch.app')
 
 @section('title', 'Pengaturan Profil')
 
 @section('content')
     <div class="content container-fluid">
-        <div class="page-header">
-            <div class="row align-items-end">
-                <div class="col-sm mb-2 mb-sm-0">
-                    <h1 class="page-header-title">Pengaturan</h1>
-                </div>
-
-                <div class="col-sm-auto">
-                    <a class="btn btn-primary" href="{{route('admin.dashboard')}}">
-                        <i class="tio-home mr-1"></i> Dashboard
-                    </a>
-                </div>
-            </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+            <h2 class="h1 mb-0 d-flex align-items-center gap-2">
+                <span class="page-header-title">
+                    Pengaturan
+                </span>
+            </h2>
         </div>
 
         <div class="row">
@@ -25,24 +19,18 @@
                             aria-label="Toggle navigation" aria-expanded="false" aria-controls="navbarVerticalNavMenu"
                             data-toggle="collapse" data-target="#navbarVerticalNavMenu">
                         <span class="d-flex justify-content-between align-items-center">
-                          <span class="h5 mb-0">Navbar Menu</span>
-
-                          <span class="navbar-toggle-default">
-                            <i class="tio-menu-hamburger"></i>
-                          </span>
-
-                          <span class="navbar-toggle-toggled">
-                            <i class="tio-clear"></i>
-                          </span>
+                            <span class="h5 mb-0">Nav Menu</span>
+                            <span class="navbar-toggle-default"><i class="tio-menu-hamburger"></i></span>
+                            <span class="navbar-toggle-toggled"><i class="tio-clear"></i></span>
                         </span>
                     </button>
 
                     <div id="navbarVerticalNavMenu" class="collapse navbar-collapse">
                         <ul id="navbarSettings"
-                            class="js-sticky-block js-scrollspy navbar-nav navbar-nav-lg nav-tabs card card-navbar-nav">
+                            class="js-sticky-block js-scrollspy navbar-nav navbar-nav-lg nav-tabs card card-navbar-nav py-3">
                             <li class="nav-item">
                                 <a class="nav-link active" href="javascript:" id="generalSection">
-                                    <i class="tio-user-outlined nav-icon"></i> Informasi Profil
+                                    <i class="tio-user-outlined nav-icon"></i> Informasi Cabang
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -56,19 +44,22 @@
             </div>
 
             <div class="col-lg-9">
-                <form action="{{env('APP_MODE')!='demo'?route('admin.settings'):'javascript:'}}" method="post" enctype="multipart/form-data" id="admin-settings-form">
+                <form action="{{route('branch.settings')}}" method="post" enctype="multipart/form-data" id="branch-settings-form">
                 @csrf
                     <div class="card mb-3 mb-lg-5" id="generalDiv">
                         <div class="profile-cover">
-                            <div class="profile-cover-img-wrapper"></div>
+                            <div class="profile-cover-img-wrapper">
+                                <img id="" class="avatar-img w-100 h-100 object-cover"
+                                     src="{{auth('branch')->user()->coverImageFullPath}}" alt="Image">
+                            </div>
                         </div>
 
                         <label
                             class="avatar avatar-xxl avatar-circle avatar-border-lg avatar-uploader profile-cover-avatar"
                             for="avatarUploader">
-                            <img id="viewer" class="avatar-img"
-                                onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                 src="{{auth('admin')->user()->imageFullPath}}"
+                            <img id="viewer"
+                                 class="avatar-img"
+                                 src="{{auth('branch')->user()->imageFullPath}}"
                                  alt="Image">
 
                             <input type="file" name="image" class="js-file-attach avatar-uploader-input"
@@ -82,39 +73,32 @@
 
                     <div class="card mb-3 mb-lg-5">
                         <div class="card-header">
-                            <fil class="card-title h4"><i class="tio-info"></i>Informasi Profil</fil>
+                            <h2 class="card-title h4"><i class="tio-info"></i> Informasi Cabang</h2>
                         </div>
 
                         <div class="card-body">
-
                             <div class="row form-group">
-                                <label for="firstNameLabel" class="col-sm-3 col-form-label input-label">Nama Lengkap<i
-                                        class="tio-help-outlined text-body ml-1" data-toggle="tooltip"
-                                        data-placement="top"
-                                        title="Nama Tampilan"></i></label>
+                                <label for="firstNameLabel" class="col-sm-3 col-form-label input-label">Nama
+                                    <i class="tio-help-outlined text-body ml-1" data-toggle="tooltip" data-placement="top"
+                                        title="Nama tampilan"></i>
+                                </label>
 
                                 <div class="col-sm-9">
                                     <div class="input-group input-group-sm-down-break">
-                                        <input type="text" class="form-control" name="f_name" id="firstNameLabel"
-                                               placeholder="Nama Depan" aria-label="Your first name"
-                                               value="{{auth('admin')->user()->f_name}}">
-                                        <input type="text" class="form-control" name="l_name" id="lastNameLabel"
-                                               placeholder="Nama Belakang" aria-label="Your last name"
-                                               value="{{auth('admin')->user()->l_name}}">
+                                        <input type="text" class="form-control" name="name" id="firstNameLabel"
+                                               placeholder="Nama" aria-label="Branch name"
+                                               value="{{auth('branch')->user()->name}}">
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row form-group">
-                                <label for="phoneLabel" class="col-sm-3 col-form-label input-label">No. Hp</label>
+                                <label for="newEmailLabel" class="col-sm-3 col-form-label input-label">No. Hp</label>
 
                                 <div class="col-sm-9">
-                                    <input type="text" class="js-masked-input form-control" name="phone" id="phoneLabel"
-                                           placeholder="081234xxxxx" aria-label="081234xxxxx"
-                                           value="{{auth('admin')->user()->phone}}"
-                                           data-hs-mask-options='{
-                                           "template": "081234xxxxx"
-                                         }'>
+                                    <input type="number" class="form-control" name="phone" id=""
+                                           value="{{auth('branch')->user()->phone?? ''}}"
+                                           placeholder="081234xxxxx" aria-label="081234xxxxx" required>
                                 </div>
                             </div>
 
@@ -123,30 +107,32 @@
 
                                 <div class="col-sm-9">
                                     <input type="email" class="form-control" name="email" id="newEmailLabel"
-                                           value="{{auth('admin')->user()->email}}"
+                                           value="{{auth('branch')->user()->email}}" disabled
                                            placeholder="Masukkan alamat email" aria-label="Masukkan alamat email">
                                 </div>
                             </div>
 
                             <div class="d-flex justify-content-end">
-                                <button type="button" id="saveChangesButton" class="btn btn-primary">Simpan Berubah</button>
+                                <button type="button" id="saveChangesButton" class="btn btn-primary">Simpan Perubahan</button>
                             </div>
+
                         </div>
                     </div>
                 </form>
 
                 <div id="passwordDiv" class="card mb-3 mb-lg-5">
                     <div class="card-header">
-                        <h4 class="card-title"><i class="tio-lock"></i>Ubah Password</h4>
+                        <h4 class="card-title"><i class="tio-lock"></i> Ubah Password</h4>
                     </div>
 
                     <div class="card-body">
-                        <form id="changePasswordForm" action="{{route('admin.settings-password')}}" method="post"
+                        <form id="changePasswordForm" action="{{ route('branch.settings-password')}}" method="post"
                               enctype="multipart/form-data">
                         @csrf
 
                             <div class="row form-group">
                                 <label for="newPassword" class="col-sm-3 col-form-label input-label">Password Baru</label>
+
                                 <div class="col-sm-9 input-group input-group-merge">
                                     <input type="password" name="password" class="js-toggle-password form-control form-control input-field" id="password"
                                            placeholder="Masukkan password baru" required
@@ -189,6 +175,7 @@
                         </form>
                     </div>
                 </div>
+
                 <div id="stickyBlockEndPoint"></div>
             </div>
         </div>
@@ -198,11 +185,13 @@
 @push('script_2')
     <script src="{{ asset('assets/admin/js/settings.js') }}"></script>
     <script>
+        'use strict';
+
         $('#saveChangesButton').click(function() {
             if ('{{ env('APP_MODE') }}' === 'demo') {
                 call_demo();
             } else {
-                form_alert('admin-settings-form', 'Ingin memperbarui informasi profil?');
+                form_alert('branch-settings-form', 'Ingin memperbarui informasi cabang?');
             }
         });
 

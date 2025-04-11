@@ -55,6 +55,16 @@ class Product extends Model
         return $this->hasMany(Review::class)->latest();
     }
 
+    public function product_by_branch(): HasMany
+    {
+        return $this->hasMany(ProductByBranch::class)->where(['branch_id' => auth('branch')->id()]);
+    }
+
+    public function sub_branch_product(): HasOne
+    {
+        return $this->hasOne(ProductByBranch::class)->where(['branch_id' => auth('branch')->id()]);
+    }
+
     public function getImageFullPathAttribute(): string
     {
         $image = $this->image?? null;

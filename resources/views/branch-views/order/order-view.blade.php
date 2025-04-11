@@ -1,4 +1,4 @@
-@extends('layouts.admin.app')
+@extends('layouts.branch.app')
 
 @section('title', 'Detail Pesanan')
 
@@ -72,7 +72,7 @@
                                             @endif
 
                                         @endif
-                                        <a class="btn btn-info" href={{route('admin.orders.generate-invoice',[$order['id']])}}>
+                                        <a class="btn btn-info" href={{route('branch.orders.generate-invoice',[$order['id']])}}>
                                             <i class="tio-print"></i> Cetak Bukti Pembayaran
                                         </a>
                                     </div>
@@ -379,48 +379,48 @@
                                                     href="javascript:">Terkirim</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="Ubah status menjadi dikembalikan?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="Ubah status menjadi dikembalikan?"
                                                     href="javascript:">Dikembalikan</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="Ubah status menjadi gagal?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="Ubah status menjadi gagal?"
                                                     href="javascript:">Gagal</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="Ubah status menjadi dibatalkan?"
+                                                   data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="Ubah status menjadi dibatalkan?"
                                                    href="javascript:">Dibatalkan</a>
                                             @else
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'pending'])}}" data-message="Ubah status menjadi tertunda?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'pending'])}}" data-message="Ubah status menjadi tertunda?"
                                                     href="javascript:">Tertunda</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'confirmed'])}}" data-message="Ubah status menjadi dikonfirmasi?"
+                                                   data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'confirmed'])}}" data-message="Ubah status menjadi dikonfirmasi?"
                                                    href="javascript:">Dikonfirmasi</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'processing'])}}" data-message="Ubah status menjadi diproses?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'processing'])}}" data-message="Ubah status menjadi diproses?"
                                                     href="javascript:">Diproses</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'out_for_delivery'])}}" data-message="Ubah status menjadi dalam pengiriman?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'out_for_delivery'])}}" data-message="Ubah status menjadi dalam pengiriman?"
                                                     href="javascript:">Dalam Pengiriman</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'delivered'])}}" data-message="Ubah status menjadi terkirim?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'delivered'])}}" data-message="Ubah status menjadi terkirim?"
                                                     href="javascript:">Terkirim</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="Ubah status menjadi dikembalikan?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'returned'])}}" data-message="Ubah status menjadi dikembalikan?"
                                                     href="javascript:">Dikembalikan</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                    data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="Ubah status menjadi gagal?"
+                                                    data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'failed'])}}" data-message="Ubah status menjadi gagal?"
                                                     href="javascript:">Gagal</a>
 
                                                 <a class="dropdown-item route-alert"
-                                                   data-route="{{route('admin.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="Ubah status menjadi dibatalkan?"
+                                                   data-route="{{route('branch.orders.status',['id'=>$order['id'],'order_status'=>'canceled'])}}" data-message="Ubah status menjadi dibatalkan?"
                                                    href="javascript:">Dibatalkan</a>
                                             @endif
                                         </div>
@@ -623,12 +623,12 @@
                             </h4>
                                 @if($order->customer)
                                     <div class="media flex-wrap gap-3">
-                                        <a target="_blank" class="" href="{{route('admin.customer.view',[$order->customer['id']])}}">
+                                        <a target="_blank" class="" href="{{route('branch.customer.view',[$order->customer['id']])}}">
                                             <img class="avatar avatar-lg rounded-circle" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" 
                                             src="{{$order->customer?->imageFullPath}}" alt="Image">
                                         </a>
                                         <div class="media-body d-flex flex-column gap-1">
-                                            <a target="_blank" href="{{route('admin.customer.view',[$order->customer['id']])}}" class="text-dark"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
+                                            <a target="_blank" href="{{route('branch.customer.view',[$order->customer['id']])}}" class="text-dark"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
                                             <span class="text-dark">{{$order->customer['orders_count']}} Pesanan</span>
                                             <span class="text-dark">
                                             <i class="tio-call-talking-quiet mr-2"></i>
@@ -713,7 +713,7 @@
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
-                        @foreach(App\Models\DeliveryMan::where(['is_active' => 1])->whereIn('branch_id', [0, auth('branch')->id()])->get() as $deliveryMan)
+                        @foreach($deliverymen as $deliveryMan)
                             <li class="list-group-item d-flex flex-wrap align-items-center gap-3 justify-content-between">
                                 <div class="media align-items-center gap-2 flex-wrap">
                                     <div class="avatar">
@@ -744,7 +744,7 @@
                     </button>
                 </div>
 
-                <form action="{{route('admin.orders.add-payment-ref-code',[$order['id']])}}" method="post">
+                <form action="{{route('branch.orders.add-payment-ref-code',[$order['id']])}}" method="post">
                     @csrf
                     <div class="modal-body">
                         <div class="form-group">
@@ -770,7 +770,7 @@
                     </button>
                 </div>
                 @if($order['delivery_address_id'])
-                    <form action="{{route('admin.orders.update-shipping',[$order['delivery_address_id']])}}" method="post">
+                    <form action="{{route('branch.orders.update-shipping',[$order['delivery_address_id']])}}" method="post">
                         @csrf
                         <input type="hidden" name="user_id" value="{{$order->user_id}}">
                         <input type="hidden" name="order_id" value="{{$order->id}}">
@@ -850,7 +850,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form action="{{route('admin.orders.increase-preparation-time', ['id' => $order->id])}}" method="post">
+                    <form action="{{route('branch.orders.increase-preparation-time', ['id' => $order->id])}}" method="post">
                         @csrf
                         <div class="modal-body">
                             <div class="form-group text-center">
@@ -939,7 +939,7 @@
         $('.change-payment-status').on('click', function(){
             let id = $(this).data('id');
             let status = $(this).data('status');
-            let paymentStatusRoute = "{{ route('admin.orders.payment-status') }}";
+            let paymentStatusRoute = "{{ route('branch.orders.payment-status') }}";
             location.href = paymentStatusRoute + '?id=' + encodeURIComponent(id) + '&payment_status=' + encodeURIComponent(status);
         });
 
@@ -998,7 +998,7 @@
         function addDeliveryMan(id) {
             $.ajax({
                 type: "GET",
-                url: '{{url('/')}}/admin/orders/add-delivery-man/{{$order['id']}}/' + id,
+                url: '{{url('/')}}/branch/orders/add-delivery-man/{{$order['id']}}/' + id,
                 data: $('#product_form').serialize(),
                 success: function (data) {
                     if(data.status == true) {
@@ -1042,7 +1042,7 @@
             let value = t.value
             $.ajax({
                 type: "GET",
-                url: '{{url('/')}}/admin/orders/ajax-change-delivery-time-date/{{$order['id']}}?' + t.name + '=' + t.value,
+                url: '{{url('/')}}/branch/orders/ajax-change-delivery-time-date/{{$order['id']}}?' + t.name + '=' + t.value,
                 data: {
                     name : name,
                     value : value
@@ -1079,7 +1079,7 @@
         function verify_offline_payment(status) {
             $.ajax({
                 type: "GET",
-                url: '{{url('/')}}/admin/orders/verify-offline-payment/{{$order['id']}}/' + status,
+                url: '{{url('/')}}/branch/orders/verify-offline-payment/{{$order['id']}}/' + status,
                 success: function (data) {
                     //console.log(data);
                     location.reload();

@@ -1,4 +1,4 @@
-@extends('layouts.admin.app')
+@extends('layouts.branch.app')
 
 @section('title', 'Daftar Pesanan')
 
@@ -48,16 +48,6 @@
                                 <h4 class="mb-0">Pilih Rentang Tanggal</h4>
                             </div>
                             <div class="col-md-4 col-lg-3">
-                                <label for="select_branch">Pilih Cabang</label>
-                                <select class="form-control select-branch" name="branch_id" id="select_branch">
-                                    <option disabled selected>--- Pilih Cabang ---</option>
-                                    <option value="0" {{$branch_id==0?'selected':''}}>Semua Cabang</option>
-                                    @foreach(\App\Models\Branch::all() as $branch)
-                                        <option value="{{$branch['id']}}" {{$branch_id==$branch['id']?'selected':''}}>{{$branch['name']}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-lg-3">
                                 <div class="form-group mb-0">
                                     <label class="text-dark">Dari</label>
                                     <input type="date" name="from" value="{{ $from }}" id="from_date" class="form-control">
@@ -70,7 +60,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-lg-3 d-flex gap-2">
-                                <a href="{{route('admin.orders.list',['all'])}}" class="btn btn-secondary flex-grow-1">Atur Ulang</a>
+                                <a href="{{route('branch.orders.list',['all'])}}" class="btn btn-secondary flex-grow-1">Atur Ulang</a>
                                 <button type="submit" class="btn btn-primary text-nowrap flex-grow-1">Tampilkan Data</button>
                             </div>
                         </div>
@@ -82,7 +72,7 @@
                 <div class="px-4 mt-4">
                     <div class="row g-2">
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'pending'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'pending'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/pending.png')}}" alt="" class="oder--card-icon">
@@ -96,7 +86,7 @@
                         </div>
 
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'confirmed'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'confirmed'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/confirmed.png')}}" alt="" class="oder--card-icon">
@@ -110,7 +100,7 @@
                         </div>
 
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'processing'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'processing'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/packaging.png')}}" alt="" class="oder--card-icon">
@@ -124,7 +114,7 @@
                         </div>
 
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'out_for_delivery'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'out_for_delivery'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/out_for_delivery.png')}}" alt="" class="oder--card-icon">
@@ -138,7 +128,7 @@
                         </div>
 
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'delivered'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'delivered'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/delivered.png')}}" alt="" class="oder--card-icon">
@@ -152,7 +142,7 @@
                         </div>
 
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'canceled'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'canceled'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/canceled.png')}}" alt="" class="oder--card-icon">
@@ -166,7 +156,7 @@
                         </div>
 
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'returned'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'returned'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/returned.png')}}" alt="dashboard" class="oder--card-icon">
@@ -179,7 +169,7 @@
                             </a>
                         </div>
                         <div class="col-sm-6 col-lg-3">
-                            <a class="order--card h-100" href="{{route('admin.orders.list', ['status' => 'failed'])}}">
+                            <a class="order--card h-100" href="{{route('branch.orders.list', ['status' => 'failed'])}}">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                         <img src="{{asset('assets/admin/img/icons/failed_to_deliver.png')}}" alt="dashboard" class="oder--card-icon">
@@ -199,9 +189,6 @@
                 <div class="row justify-content-between align-items-center gy-2">
                     <div class="col-sm-8 col-md-6 col-lg-4">
                         <form action="{{url()->current()}}" method="GET">
-                            <input type="hidden" name="branch_id" value="{{$branch_id}}">
-                            <input type="hidden" name="from" value="{{$from}}">
-                            <input type="hidden" name="to" value="{{$to}}">
                             <div class="input-group">
                                 <input id="datatableSearch_" type="search" name="search"
                                         class="form-control"
@@ -240,7 +227,7 @@
                             <tr class="status-{{$order['order_status']}} class-all">
                                 <td>{{$orders->firstitem()+$key}}</td>
                                 <td>
-                                    <a class="text-dark" href="{{route('admin.orders.details',['id'=>$order['id']])}}">{{$order['id']}}</a>
+                                    <a class="text-dark" href="{{route('branch.orders.details',['id'=>$order['id']])}}">{{$order['id']}}</a>
                                 </td>
                                 <td>
                                     <div>{{date('d M Y',strtotime($order['delivery_date']))}}</div>
@@ -291,10 +278,10 @@
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-center gap-2">
-                                        <a class="btn btn-sm btn-outline-primary square-btn" href="{{route('admin.orders.details',['id'=>$order['id']])}}">
+                                        <a class="btn btn-sm btn-outline-primary square-btn" href="{{route('branch.orders.details',['id'=>$order['id']])}}">
                                             <i class="tio-invisible"></i>
                                         </a>
-                                        <a href="{{route('admin.orders.generate-invoice',[$order['id']])}}" class="btn btn-sm btn-outline-success square-btn" target="_blank">
+                                        <a href="{{route('branch.orders.generate-invoice',[$order['id']])}}" class="btn btn-sm btn-outline-success square-btn" target="_blank">
                                             <i class="tio-print"></i>
                                         </a>
                                     </div>

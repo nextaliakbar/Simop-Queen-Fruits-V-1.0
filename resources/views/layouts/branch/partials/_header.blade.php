@@ -4,7 +4,7 @@
             <div class="navbar-brand-wrapper">
                 <!-- Logo -->
                 {{-- @php($restaurant_logo=\App\Models\BusinessSetting::where(['key'=>'logo'])->first()->value) --}}
-                <a class="navbar-brand" href="{{route('admin.dashboard')}}" aria-label="">
+                <a class="navbar-brand" href="{{route('branch.dashboard')}}" aria-label="">
                     <img class="navbar-brand-logo" style="object-fit: contain;"
                          onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
                          src="{{asset('storage/store/logo_store_2.png')}}" alt="Logo">
@@ -35,9 +35,9 @@
                     <li class="nav-item d-none d-sm-inline-block">
                         <div class="hs-unfold">
                             <a class="js-hs-unfold-invoker btn btn-icon btn-ghost-secondary rounded-circle"
-                               href="{{route('admin.orders.list', ['status' => 'pending'])}}">
+                               href="{{route('branch.orders.list', ['status' => 'pending'])}}">
                                 <i class="tio-shopping-cart-outlined"></i>
-                                <span class="btn-status btn-status-c1">{{App\Models\Order::where(['checked' => 0, 'branch_id' => 1])->count()}}</span>
+                                <span class="btn-status btn-status-c1">{{App\Models\Order::where(['checked' => 0, 'branch_id' => auth('branch')->id()])->count()}}</span>
                             </a>
                         </div>
                     </li>
@@ -52,13 +52,13 @@
                                      "type": "css-animation"
                                    }'>
                                 <div class="media-body d-flex align-items-end flex-column">
-                                    <span class="card-title h5">{{auth('admin')->user()->f_name}}</span>
-                                    <span class="card-text fz-12 font-weight-bold">{{auth('admin')->user()->role->name}}</span>
+                                    <span class="card-title h5">{{auth('branch')->user()->name}}</span>
+                                    <span class="card-text fz-12 font-weight-bold">Admin Cabang</span>
                                 </div>
                                 <div class="avatar avatar-sm avatar-circle">
                                     <img class="avatar-img"
                                          onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                         src="{{asset('storage/admin')}}/{{auth('admin')->user()->image}}"
+                                         src="{{asset('storage/branch')}}/{{auth('branch')->user()->image}}"
                                          alt="Image Description">
                                     <span class="avatar-status avatar-sm-status avatar-status-success"></span>
                                 </div>
@@ -71,19 +71,19 @@
                                         <div class="avatar avatar-sm avatar-circle mr-2">
                                             <img class="avatar-img"
                                                  onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                 src="{{asset('storage/admin')}}/{{auth('admin')->user()->image}}"
+                                                 src="{{asset('storage/branch')}}/{{auth('branch')->user()->image}}"
                                                  alt="Image Description">
                                         </div>
                                         <div class="media-body">
-                                            <span class="card-title h5">{{auth('admin')->user()->f_name}}</span>
-                                            <span class="card-text">{{auth('admin')->user()->email}}</span>
+                                            <span class="card-title h5">{{auth('branch')->user()->name}}</span>
+                                            <span class="card-text">{{auth('branch')->user()->email}}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="dropdown-divider"></div>
 
-                                <a class="dropdown-item" href="{{route('admin.settings')}}">
+                                <a class="dropdown-item" href="{{route('branch.settings')}}">
                                     <span class="text-truncate pr-2" title="Settings">Pengaturan</span>
                                 </a>
 
@@ -99,7 +99,7 @@
                                     cancelButtonText: 'Tidak',
                                     }).then((result) => {
                                     if (result.value) {
-                                    location.href='{{route('admin.auth.logout')}}';
+                                    location.href='{{route('branch.auth.logout')}}';
                                     } else{
                                         Swal.fire({
                                         title: 'Batal',

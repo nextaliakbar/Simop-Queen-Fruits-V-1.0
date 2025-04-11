@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Queen Fruits | Masuk</title>
+    <title>Cabang | Masuk</title>
 
     {{-- @php($icon = \App\Models\BusinessSetting::where(['key' => 'fav_icon'])->first()?->value??'') --}}
     <link rel="shortcut icon" href="{{asset('assets/admin/img/logo_store_2.png')}}">
@@ -25,7 +25,7 @@
 
             <div class="auth-wrapper-right">
                 <div class="auth-wrapper-form">
-                    <form class="" id="form-id" action="{{route('admin.auth.login')}}" method="post">
+                    <form class="" id="form-id" action="{{route('branch.auth.login')}}" method="post">
                         @csrf
                         <div class="auth-header">
                             <div class="mb-5">
@@ -35,8 +35,8 @@
                                     alt="" style="width: 75px; height: 75px">
                                 </h2>
                                 <p class="mb-3 text-capitalize text-dark">Sistem Informasi Manajemen & Operasional</p>
-                                <p class="mb-0 text-capitalize text-dark">Ingin masuk ke cabang lain?
-                                    <a href="{{route('branch.auth.login')}}">Klik disini</a>
+                                <p class="mb-0 text-capitalize text-dark">Ingin masuk ke cabang utama atau admin?
+                                    <a href="{{route('admin.auth.login')}}">Klik disini</a>
                                 </p>
                             </div>
                         </div>

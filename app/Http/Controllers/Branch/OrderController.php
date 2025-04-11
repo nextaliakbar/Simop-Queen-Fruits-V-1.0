@@ -1,66 +1,55 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Branch;
 
-use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
-use App\Models\CustomerAddress;
-use App\Models\OfflinePayment;
-use App\Models\DeliveryMan;
 use App\Models\Order;
-use App\Models\User;
-use Brian2694\Toastr\Facades\Toastr;
+use App\Models\OfflinePayment;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use DateTime;
-use Exception;
+use App\CentralLogics\Helpers;
+use App\Models\CustomerAddress;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Brian2694\Toastr\Facades\Toastr;
 
 class OrderController extends Controller
 {
     public function __construct(
         private Order $order,
-        private User $user,
-        private DeliveryMan $delivery_man,
         private CustomerAddress $customer_address
     ) {}
 
     public function details($id): Renderable|RedirectResponse
     {
-        $order = $this->order->with(['details', 'customer', 'delivery_address', 'branch', 'delivery_man'])
-        ->where(['id' => $id])->first();
+        $order = $this->order->with(['details'])
+        ->where(['id' => $id, 'branch_id' => auth('branch')->id()])->first();
 
         if(!isset($order)) {
             Toastr::info('Tidak ada pesanan');
             return back();
         }
-
-        $deliverymen = $this->delivery_man->where(['is_active' => 1])
-        ->where(function($query) use ($order){
-            $query->where('branch_id', $order->branch_id)
-            ->orWhere('branch_id', 0);
-        })->get();
         
         $delivery_date_time = $order['delivery_date'] . ' ' . $order['delivery_time'];
         $ordered_time = Carbon::createFromFormat('Y-m-d H:i:s', date('Y-m-d H:i:s', strtotime($delivery_date_time)));
         $remaining_time = $ordered_time->add($order['preparation_time'], 'minute')->format('Y-m-d H:i:s');
         $order['remaining_time'] = $remaining_time;
 
-        return view('admin-views.order.order-view', compact('order', 'deliverymen'));
+        return view('branch-views.order.order-view', compact('order'));
     }
 
     public function generate_invoice($id): Renderable
     {
-        $order = $this->order->where('id', $id)->first();
+        $order = $this->order->where(['id' => $id, 'branch_id' => auth('branch')->id()])->first();
 
-        return view('admin-views.order.invoice', compact('order'));
+        return view('branch-views.order.invoice', compact('order'));
     }
 
     public function status(Request $request): RedirectResponse
     {
-        $order = $this->order->find($request->id);
+        $order = $this->order->where(['id' => $request->input('id'), 'branch_id' => auth('user')->id()]);
 
         if(in_array($order->order_status, ['delivered', 'failed'])) {
             Toastr::warning('Pesanan dengan status ' . $order->order_status . ' tidak dapat  diubah');
@@ -151,7 +140,7 @@ class OrderController extends Controller
 
     public function add_payment_reference_code(Request $request, $id): RedirectResponse
     {
-        $this->order->where(['id' => $id])->update([
+        $this->order->where(['id' => $id, 'branch_id' => auth('branch')->id()])->update([
             'transaction_reference' => $request['transaction_reference']
         ]);
 
@@ -270,29 +259,13 @@ class OrderController extends Controller
         return back();
     }
 
-    public function payment_status(Request $request): RedirectResponse
-    {
-        $order = $this->order->find($request->id);
-        if($request->payment_status == 'paid' && $order['transaction_reference'] == null 
-        && !in_array($order['payment_method'], ['offline_payment','card'])) {
-            Toastr::warning('Tambahkan kode referensi pembayaran terlebih dahulu');
-            return back();   
-        }
-
-        $order->payment_status = $request->payment_status;
-        $order->save();
-
-        Toastr::success('Status pembayaran diperbarui');
-        return back();
-    }
-
     public function add_deliveryman($order_id, $delivery_man_id): JsonResponse
     {
         if($delivery_man_id == 0) {
             return response()->json([], 200);
         }
 
-        $order = $this->order->find($order_id);
+        $order = $this->order->where(['id' => $order_id, 'branch_id' => auth('branch')->id()])->first();
 
         if($order->order_status == 'pending' || $order->order_status == 'delivered' 
         || $order->order_status == 'returned' || $order->order_status == 'failed' 
@@ -429,19 +402,37 @@ class OrderController extends Controller
 
     public function list(Request $request, $status): Renderable
     {
-        $this->order->where(['checked' => 0])->update(['checked' => 1]);
+        $this->order->where(['checked' => 0, 'branch_id' => auth('branch')->id()])->update(['checked' => 1]);
+
+        $from = $request['from'];
+        $to = $request['to'];
+
+        if($status == 'all') {
+            $orders = $this->order
+            ->with(['customer'])
+            ->where(['branch_id' => auth('branch')->id()]);
+
+        } elseif($status == 'schedule') {
+            $orders = $this->order
+            ->whereDate('delivery_date', '>', Carbon::now()->format('Y-m-d'))
+            ->where(['branch_id' => auth('branch')->id()]);
+        } else {
+            $orders = $this->order
+            ->with(['customer'])
+            ->where(['order_status' => $status, 'branch_id' => auth('branch')->id()])
+            ->whereDate('delivery_date', '<=', Carbon::now()->format('Y-m-d'));
+        }
+
 
         $query_param = [];
         $search = $request['search'];
-        $from = $request['from'];
-        $to = $request['to'];
-        $branch_id = $request['branch_id'];
-
-        $query = $this->order->newQuery();
 
         if($request->has('search')) {
             $key = explode(' ', $request['search']);
-            $query->where(function ($q) use ($key) {
+            $orders = $this->order
+            ->where(['branch_id' => auth('branch')->id()])
+            ->whereDate('delivery_date', '<=', Carbon::now()->format('Y-m-d'))
+            ->where(function ($q) use ($key) {
                 foreach($key as $value) {
                     $q->orWhere('id', 'like', "%{$value}%")
                     ->orWhere('order_status', 'like', "%{$value}%")
@@ -452,182 +443,83 @@ class OrderController extends Controller
             $query_param['search'] = $search;
         }
 
-        if($branch_id && $branch_id != 0) {
-            $query->where('branch_id', $branch_id);
-            $query_param['branch_id'] = $branch_id;
-        }
-
         if($from && $to) {
-            $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            $query_param['from'] = $from;
-            $query_param['to'] = $to;
+            $orders =  $this->order->where('branch_id', auth('branch')->id())->
+            whereBetween('created_at', [Carbon::parse($from)->startOfDay(), Carbon::parse($to)->endOfDay()]);
+            $query_param = [
+                'from' => $from,
+                'to' => $to
+            ];
         }
-
-        if($status == 'schedule') {
-            $query->with(['customer', 'branch'])->schedule();
-        } elseif($status != 'all') {
-            $query->with(['customer', 'branch'])->where('order_status', $status)->notSchedule();
-        } else {
-            $query->with(['customer', 'branch']);
-        }
-
-        $key = explode(' ', $request['search']);
 
         $order_count = [
             'pending' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'pending'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'pending', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($request->has('search'), function($query) use ($key) {
-                $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%")
-                        ->orWhere('order_status', 'like', "%{$value}%")
-                        ->orWhere('transaction_reference', 'like', "%{$value}%");
-                    }
-                });
             })->count(),
 
             'confirmed' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'confirmed'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'confirmed', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($request->has('search'), function($query) use ($key) {
-                $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%")
-                        ->orWhere('order_status', 'like', "%{$value}%")
-                        ->orWhere('transaction_reference', 'like', "%{$value}%");
-                    }
-                });
             })->count(),
             
             'processing' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'processing'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'processing', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($request->has('search'), function($query) use ($key) {
-                $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%")
-                        ->orWhere('order_status', 'like', "%{$value}%")
-                        ->orWhere('transaction_reference', 'like', "%{$value}%");
-                    }
-                });
             })->count(),
 
             'out_for_delivery' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'out_for_delivery'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'out_for_delivery', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($request->has('search'), function($query) use ($key) {
-                $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%")
-                        ->orWhere('order_status', 'like', "%{$value}%")
-                        ->orWhere('transaction_reference', 'like', "%{$value}%");
-                    }
-                });
             })->count(),
 
             'delivered' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'delivered'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'delivered', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($request->has('search'), function($query) use ($key) {
-                $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%")
-                        ->orWhere('order_status', 'like', "%{$value}%")
-                        ->orWhere('transaction_reference', 'like', "%{$value}%");
-                    }
-                });
             })->count(),
 
             'canceled' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'canceled'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'canceled', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($request->has('search'), function($query) use ($key) {
-                $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%")
-                        ->orWhere('order_status', 'like', "%{$value}%")
-                        ->orWhere('transaction_reference', 'like', "%{$value}%");
-                    }
-                });
             })->count(),
 
             'returned' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'returned'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'returned', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($request->has('search'), function($query) use ($key) {
-                $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%")
-                        ->orWhere('order_status', 'like', "%{$value}%")
-                        ->orWhere('transaction_reference', 'like', "%{$value}%");
-                    }
-                });
             })->count(),
 
             'failed' => $this->order
             ->notPos()
             ->notSchedule()
-            ->where(['order_status' => 'failed'])
-            ->when($branch_id && $branch_id != 0, function ($query) use ($branch_id) {
-                $query->where('branch_id', $branch_id);
-            })
+            ->where(['order_status' => 'failed', 'branch_id' => auth('branch')->id()])
             ->when(!is_null($from) && !is_null($to), function ($query) use ($from, $to) {
                 $query->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
             })->count()
         ];
 
-        $orders = $query->notPos()->latest()->paginate(Helpers::get_pagination())->appends($query_param);
+        $orders = $orders->notPos()->latest()->paginate(Helpers::get_pagination())->appends($query_param);
 
-        return view('admin-views.order.list', compact('orders', 'status', 'search', 'from', 'to', 'order_count', 'branch_id'));
+        return view('branch-views.order.list', compact('orders', 'status', 'search', 'from', 'to', 'order_count'));
     }
 }

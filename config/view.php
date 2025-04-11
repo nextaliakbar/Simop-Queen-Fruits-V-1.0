@@ -33,4 +33,6 @@ return [
         realpath(storage_path('framework/views'))
     ),
 
+    'expires' => env('VIEW_CHECK_EXPIRATION', true)
+
 ];

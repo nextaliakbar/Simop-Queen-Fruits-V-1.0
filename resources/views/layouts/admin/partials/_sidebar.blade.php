@@ -44,7 +44,7 @@
 
                     <ul class="navbar-nav navbar-nav-lg nav-tabs">
                         <!-- Dashboards -->
-{{--                        @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['dashboard_management']))--}}
+                       @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['dashboard_management']))
                         <li class="navbar-vertical-aside-has-menu {{Request::is('admin')?'show':''}}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link"
                                href="{{route('admin.dashboard')}}" title="dashboard">
@@ -54,7 +54,7 @@
                                     </span>
                             </a>
                         </li>
-{{--                        @endif--}}
+                       @endif
                         <!-- End Dashboards -->
 
                         <!-- Pos Management -->

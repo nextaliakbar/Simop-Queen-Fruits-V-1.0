@@ -1,81 +1,35 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Branch;
 
-use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
-use App\Models\Admin;
 use App\Models\Branch;
-use App\Models\Category;
 use App\Models\Order;
-use App\Models\OrderDetail;
-use App\Models\Product;
-use App\Models\Review;
-use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function __construct(
         private Order $order,
-        private OrderDetail $order_detail,
-        private Admin $admin,
-        private Review $review,
-        private User $user,
-        private Product $product,
-        private Category $category,
         private Branch $branch
     ) {}
 
     public function dashboard(): Renderable
     {
-        $top_sell = $this->order_detail->with(['product'])
-        ->whereHas('order', function ($query) {
-            $query->where('order_status', 'delivered');
-        })
-        ->select('product_id', DB::raw('SUM(quantity) as count'))
-        ->groupBy('product_id')
-        ->orderBy('count', 'desc')
-        ->take(6)
-        ->get();
-
-        $most_rated_products = $this->review->with(['product'])
-        ->select(['product_id', DB::raw('AVG(rating) as rating_average'), DB::raw('COUNT(rating) as total')])
-        ->groupBy('product_id')
-        ->orderBy('total', 'desc')
-        ->take(7)
-        ->get();
-
-        $top_customer = $this->order->with(['customer'])
-        ->select('user_id', DB::raw('COUNT(user_id) as count'))
-        ->groupBy('user_id')
-        ->orderBy('count', 'desc')
-        ->take(6)
-        ->get();
-
         $data = self::order_stats_data();
-
-        $data['customer'] = $this->user->count();
-        $data['product'] = $this->product->count();
-        $data['order'] = $this->order->count();
-        $data['category'] = $this->category->where('parent_id', 0)->count();
-        $data['branch'] = $this->branch->count();
-
-        $data['top_sell'] = $top_sell;
-        $data['most_rated_products'] = $most_rated_products;
-        $data['top_customer'] = $top_customer;
 
         $from = Carbon::now()->startOfYear()->format('Y-m-d');
         $to = Carbon::now()->endOfYear()->format('Y-m-d');
 
         $earning = [];
         $earning_data = $this->order->where([
-            'order_status' => 'delivered'
+            'order_status' => 'delivered',
+            'branch_id' => auth('branch')->id()
         ])->select(DB::raw('IFNULL(sum(order_amount),0) as sums'),
         DB::raw('YEAR(created_at) year, MONTH(created_at) month'))
         ->whereBetween('created_at', [Carbon::parse(now())->startOfYear(), Carbon::parse(now())->endOfYear()])
@@ -91,7 +45,7 @@ class DashboardController extends Controller
         }
 
         $order_statistics_chart = [];
-        $order_statistics_chart_data = $this->order->where(['order_status' => 'delivered'])
+        $order_statistics_chart_data = $this->order->where(['order_status' => 'delivered', 'branch_id' => auth('branch')->id()])
         ->select(DB::raw('(count(id)) as total'), DB::raw('YEAR(created_at) year, MONTH(created_at) month'))
         ->whereBetween('created_at', [Carbon::parse(now())->startOfYear(), Carbon::parse(now())->endOfYear()])
         ->groupBy('year', 'month')->get()->toArray();
@@ -106,7 +60,7 @@ class DashboardController extends Controller
         }
 
         $donut = [];
-        $donut_data = $this->order->all();
+        $donut_data = $this->order->where('branch_id', auth('branch')->id())->get();
         $donut['pending'] = $donut_data->where('order_status', 'pending')->count();
         $donut['ongoing'] = $donut_data->whereIn('order_status', ['confirmed', 'processing', 'out_for_delivery'])->count();
         $donut['delivered'] = $donut_data->where('order_status', 'delivered')->count();
@@ -114,9 +68,11 @@ class DashboardController extends Controller
         $donut['returned'] = $donut_data->where('order_status', 'returned')->count();
         $donut['failed'] = $donut_data->where('order_status', 'failed')->count();
 
-        $data['recent_orders'] = $this->order->latest()->take(5)->get();
-        
-        return view('admin-views.dashboard', compact('data', 'earning', 'order_statistics_chart', 'donut'));
+        $data['recent_orders'] = $this->order->latest()
+        ->where('branch_id', auth('branch')->id())
+        ->take(5)->get();
+
+        return view('branch-views.dashboard', compact('data','order_statistics_chart', 'earning', 'donut'));
     }
 
     private function order_stats_data(): array
@@ -125,7 +81,7 @@ class DashboardController extends Controller
         $this_month = session()->has('statistics_type') && session('statistics_type') == 'this_month' ? 1 : 0;
 
         $pending = $this->order
-        ->where(['order_status' => 'pending'])
+        ->where(['order_status' => 'pending', 'branch_id' => auth('branch')->id()])
         ->notSchedule()
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
@@ -136,7 +92,7 @@ class DashboardController extends Controller
         ->count();
 
         $confirmed = $this->order
-        ->where(['order_status' => 'confirmed'])
+        ->where(['order_status' => 'confirmed', 'branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -146,7 +102,7 @@ class DashboardController extends Controller
         ->count();
 
         $processing = $this->order
-        ->where(['order_status' => 'processing'])
+        ->where(['order_status' => 'processing', 'branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -156,7 +112,7 @@ class DashboardController extends Controller
         ->count();
 
         $out_for_delivery = $this->order
-        ->where(['order_status' => 'out_for_delivery'])
+        ->where(['order_status' => 'out_for_delivery', 'branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -166,7 +122,7 @@ class DashboardController extends Controller
         ->count();
 
         $canceled = $this->order
-        ->where(['order_status' => 'canceled'])
+        ->where(['order_status' => 'canceled', 'branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -176,7 +132,7 @@ class DashboardController extends Controller
         ->count();
 
         $delivered = $this->order
-        ->where(['order_status' => 'delivered'])
+        ->where(['order_status' => 'delivered', 'branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -186,6 +142,7 @@ class DashboardController extends Controller
         ->count();
 
         $all = $this->order
+        ->where(['branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -195,7 +152,7 @@ class DashboardController extends Controller
         ->count();
 
         $returned = $this->order
-        ->where(['order_status' => 'returned'])
+        ->where(['order_status' => 'returned', 'branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -205,7 +162,7 @@ class DashboardController extends Controller
         ->count();
         
         $failed = $this->order
-        ->where(['order_status' => 'failed'])
+        ->where(['order_status' => 'failed', 'branch_id' => auth('branch')->id()])
         ->when($today, function($query) {
             return $query->whereDate('created_at', Carbon::today());
         })
@@ -238,7 +195,7 @@ class DashboardController extends Controller
             $from = Carbon::now()->startOfYear()->format('Y-m-d');
             $to = Carbon::now()->endOfYear()->format('Y-m-d');
 
-            $orders = $this->order->where(['order_status' => 'delivered'])
+            $orders = $this->order->where(['order_status' => 'delivered', 'branch_id' => auth('branch')->id()])
             ->select(DB::raw('(count(id)) as total'), DB::raw('YEAR(created_at) year, MONTH(created_at) month'))
             ->whereBetween('created_at', [Carbon::parse(now())->startOfYear(), Carbon::parse(now())->endOfYear()])
             ->groupBy('year', 'month')->get()->toArray();
@@ -259,7 +216,7 @@ class DashboardController extends Controller
             $number = date('d', strtotime($to));
             $key_range = range(1, $number);
 
-            $orders = $this->order->where(['order_status' => 'delivered'])
+            $orders = $this->order->where(['order_status' => 'delivered', 'branch_id' => auth('branch')->id()])
             ->select(DB::raw('(count(id)) as total'), DB::raw('YEAR(created_at) year, MONTH(created_at) month, DAY(created_at) day'))
             ->whereBetween('created_at', [Carbon::parse(now())->startOfMonth(), Carbon::parse(now())->endOfMonth()])
             ->groupBy('created_at')->get()->toArray();     
@@ -279,7 +236,7 @@ class DashboardController extends Controller
             $from = Carbon::now()->startOfWeek();
             $to = Carbon::now()->endOfWeek();
             
-            $orders = $this->order->where(['order_status' => 'delivered'])
+            $orders = $this->order->where(['order_status' => 'delivered', 'branch_id' => auth('branch')->id()])
             ->whereBetween('created_at', [$from, $to])->get();
 
             $date_range = CarbonPeriod::create($from, $to)->toArray();
@@ -306,7 +263,7 @@ class DashboardController extends Controller
         $earning_data = [];
         if($date_type == 'yearEarn') {
             $earning = $this->order->where([
-                'order_status' => 'delivered'
+                'order_status' => 'delivered', 'branch_id' => auth('branch')->id()
             ])->select(DB::raw('IFNULL(sum(order_amount),0) as sums'),
             DB::raw('YEAR(created_at) year, MONTH(created_at) month'))
             ->whereBetween('created_at', [Carbon::parse(now())->startOfYear(), Carbon::parse(now())->endOfYear()])
@@ -329,7 +286,7 @@ class DashboardController extends Controller
             $key_range = range(1, $number);
 
             $earning = $this->order->where([
-                'order_status' => 'delivered'
+                'order_status' => 'delivered', 'branch_id' => auth('branch')->id()
             ])->select(DB::raw('IFNULL(sum(order_amount),0) as sums'),
             DB::raw('YEAR(created_at) year, MONTH(created_at) month, DAY(created_at) day'))
             ->whereBetween('created_at', [Carbon::parse(now())->startOfMonth(), Carbon::parse(now())->endOfMonth()])
@@ -351,7 +308,7 @@ class DashboardController extends Controller
             $from = Carbon::now()->startOfWeek();
             $to = Carbon::now()->endOfWeek();
             
-            $orders = $this->order->where(['order_status' => 'delivered'])
+            $orders = $this->order->where(['order_status' => 'delivered', 'branch_id' => auth('branch')->id()])
             ->whereBetween('created_at', [$from, $to])->get();
 
             $date_range = CarbonPeriod::create($from, $to)->toArray();
@@ -377,7 +334,7 @@ class DashboardController extends Controller
         $data = self::order_stats_data();
 
         return response()->json([
-            'view' => view('admin-views.partials._dashboard-order-stats', compact('data'))->render()
-        ], 200);
+            'view' => view('branch-views.partials._dashboard-order-stats', compact('data'))->render()
+        ]);
     }
 }

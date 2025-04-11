@@ -33,7 +33,10 @@ class SystemController extends Controller
                 'phone' => 'required'
             ],
             [
-                'f_name.required' => 'Nama depan tidak boleh kosong'
+                'f_name.required' => 'Nama depan tidak boleh kosong',
+                'email.required' => 'Emmail tidak boleh kosong',
+                'email.unique' => 'Email sudah tersedia',
+                'phone.required' => 'No. hp tida boleh kosong'
             ]
             );
 

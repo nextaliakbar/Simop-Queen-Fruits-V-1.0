@@ -35,14 +35,14 @@ class ProductController extends Controller
         $query_param = [];
         $search = $request['search'];
         if($request->has('search')) {
-            $key = explode(' ', $request['search']);
+            $key = explode(' ', $search);
             $query = $this->product->where(function ($q) use ($key) {
                 foreach($key as $value) {
                     $q->orWhere('id', 'like', "%{$value}%")
                     ->orWhere('name', 'like', "%{$value}%");
                 }
             });
-            $query_param = ['search' => $request['search']];
+            $query_param = ['search' => $search];
         } else {
             $query = $this->product;
         }
@@ -457,23 +457,10 @@ class ProductController extends Controller
         $product->image = $request->has('image') ? Helpers::update('product/', 'png', $request->file('image')) : $product->image;
         $product->available_time_starts = $request->available_time_starts;
         $product->available_time_ends = $request->available_time_ends;
-
-        if($request->tax_type != null && $request->tax_type !== 'nothing') {
-            $product->tax_type = $request->tax_type;
-            $product->tax = $request->tax;
-        } else {
-            $product->tax_type = null;
-            $product->tax = 0;
-        }
-
-        if($request->discount_type != null && $request->discount_type !== 'nothing') {
-            $product->discount_type = $request->discount_type;
-            $product->discount = $request->discount;
-        } else {
-            $product->discount_type = null;
-            $product->discount = 0;
-        }
-
+        $product->tax_type = $request['tax_type'] != 'nothing' ? $request['tax_type'] : null;
+        $product->tax = $request['tax'] ?? 0;
+        $product->discount_type = $request['discount_type'] != 'nothing' ? $request['discount_type'] : null;
+        $product->discount = $request['discount'] ?? 0;
         $product->status = $request->status == 'on' ? 1 : 0;
         $product->is_recommended = $request->is_recommended == 'on' ? 1 : 0;
         $product->save();

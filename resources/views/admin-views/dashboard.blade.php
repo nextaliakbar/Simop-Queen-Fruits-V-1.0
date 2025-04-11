@@ -124,7 +124,7 @@
                         <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center">
                             <h4 class="d-flex align-items-center text-capitalize gap-10 mb-0">
                                 <img width="20" class="avatar-img rounded-0" src="{{asset('assets/admin/img/icons/earning_statistics.png')}}" alt="">
-                                Statistik Penghasilan
+                                Statistik Pendapatan
                             </h4>
                             <ul class="option-select-btn">
                                 <li>
@@ -259,7 +259,7 @@
                     },
                     colors: ['rgba(255, 111, 112, 0.5)', '#107980'],
                     series: [{
-                        name: "Order",
+                        name: "Pesanan",
                             data: [
                                 {{$order_statistics_chart[1]}}, {{$order_statistics_chart[2]}}, {{$order_statistics_chart[3]}}, {{$order_statistics_chart[4]}},
                                 {{$order_statistics_chart[5]}}, {{$order_statistics_chart[6]}}, {{$order_statistics_chart[7]}}, {{$order_statistics_chart[8]}},
@@ -312,7 +312,7 @@
                         width: 256,
                         type: 'donut',
                     },
-                    labels: ['Berlangsung', 'Terkirim', 'Tertunda', 'Dibatalkan', 'Dikembalikan', 'Gagal Terkirim'],
+                    labels: ['Berlangsung', 'Terkirim', 'Tertunda', 'Dibatalkan', 'Dikembalikan', 'Gagal'],
                     dataLabels: {
                         enabled: false,
                         style: {
@@ -359,7 +359,7 @@
                     },
                     colors: ['rgba(255, 111, 112, 0.5)', '#107980'],
                     series: [{
-                        name: "Earning",
+                        name: "Pendapatan",
                         data: [{{$earning[1]}}, {{$earning[2]}}, {{$earning[3]}}, {{$earning[4]}}, {{$earning[5]}}, {{$earning[6]}},
                             {{$earning[7]}}, {{$earning[8]}}, {{$earning[9]}}, {{$earning[10]}}, {{$earning[11]}}, {{$earning[12]}}],
                         },
@@ -465,7 +465,7 @@
 
                             var options = {
                                 series: [{
-                                    name: "Orders",
+                                    name: "Pesanan",
                                     data: response_data.orders,
                                 }],
                                 chart: {
@@ -554,7 +554,7 @@
                                 },
                                 colors: ['rgba(255, 111, 112, 0.5)', '#107980'],
                                 series: [{
-                                    name: "Earning",
+                                    name: "Pendapatan",
                                     data: response_data.earning,
                                 }],
                                 markers: {

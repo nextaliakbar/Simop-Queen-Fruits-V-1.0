@@ -126,10 +126,10 @@
                                                             <option value="nothing" {{is_null($product['discount_type'])? 'selected' : ''}}>
                                                                 Tidak Ada
                                                             </option>
-                                                            <option value="percent" {{$product['discount_type']=='percent'?'selected':''}}>
+                                                            <option value="percent" {{$product['discount_type']!= null ? ($product['discount_type'] == 'percent' ? 'selected' : ''):''}}>
                                                                 Diskon Persentase
                                                             </option>
-                                                            <option value="amount" {{$product['discount_type']=='amount'?'selected':''}}>
+                                                            <option value="amount" {{$product['discount_type']!= null ? ($product['discount_type'] == 'amount' ? 'selected' : ''):''}}>
                                                                 Diskon Langsung
                                                             </option>
                                                         </select>
@@ -139,7 +139,7 @@
                                                     <div class="form-group">
                                                         <label class="input-label">Diskon
                                                             <span class="text-danger">*</span></label>
-                                                        <input id="discount_input" type="number" min="0" value="{{$product['discount']!= 0 ? $product['discount'] : ''}}"
+                                                        <input id="discount_input" type="number" min="0" value="{{$product['discount']}}"
                                                             name="discount" class="form-control"
                                                             placeholder="Kosongkan jika tidak perlu">
                                                     </div>
@@ -152,10 +152,10 @@
                                                             <option value="nothing" {{is_null($product['tax_type'])? 'selected':''}}>
                                                                 Tidak Ada
                                                             </option>
-                                                            <option value="percent" {{$product['tax_type']=='percent'?'selected':''}}>
+                                                            <option value="percent" {{$product['tax_type']!= null ? ($product['tax_type'] == 'precent' ? 'selected' : ''):''}}>
                                                                 Pajak Persentase
                                                             </option>
-                                                            <option value="amount" {{$product['tax_type']=='amount'?'selected':''}}>
+                                                            <option value="amount" {{$product['tax_type']!= null ? ($product['tax_type'] == 'amount' ? 'selected' : ''):''}}>
                                                                 Pajak Langsung
                                                             </option>
                                                         </select>
@@ -165,7 +165,7 @@
                                                     <div class="form-group">
                                                         <label class="input-label" for="exampleFormControlInput1">Tarif Pajak
                                                             <span class="text-danger">*</span></label>
-                                                        <input id="tax_input" type="number" value="{{$product['tax']!= 0 ? $product['tax']:''}}" min="0" name="tax"
+                                                        <input id="tax_input" type="number" value="{{$product['tax']}}" min="0" name="tax"
                                                             class="form-control" step="0.01"
                                                             placeholder="Kosongkan jika tidak perlu">
                                                     </div>

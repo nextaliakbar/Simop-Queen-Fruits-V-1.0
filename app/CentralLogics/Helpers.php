@@ -57,7 +57,7 @@ class Helpers
     {
         $permission = auth('admin')->user()->role->module_access??null;
 
-        if(isset($permission) && in_array($mod_name, (array)json_decode($permission))) {
+        if(isset($permission) && in_array($mod_name, (array)json_decode($permission)) == true) {
             return true;
         }
 

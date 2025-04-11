@@ -33,6 +33,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->map_web_routes();
         $this->map_admin_routes();
+        $this->map_branch_routes();
     }
 
     protected function map_web_routes()
@@ -48,5 +49,13 @@ class RouteServiceProvider extends ServiceProvider
         ->middleware('web')
         ->namespace($this->namespace)
         ->group(base_path('routes/admin.php'));
+    }
+
+    protected function map_branch_routes()
+    {
+        Route::prefix('branch')
+        ->middleware('web')
+        ->namespace($this->namespace)
+        ->group(base_path('routes/branch.php'));
     }
 }

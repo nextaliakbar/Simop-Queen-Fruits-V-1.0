@@ -1,4 +1,4 @@
-@extends('layouts.admin.app')
+@extends('layouts.branch.app')
 
 @section('title', 'Daftar Produk')
 
@@ -18,7 +18,6 @@
             <span class="badge badge-soft-dark rounded-50 fz-14">{{ $products->total() }}</span>
         </div>
 
-
         <div class="row g-2">
             <div class="col-12">
                 <div class="card">
@@ -34,13 +33,6 @@
                                     </div>
                                 </form>
                             </div>
-                            <div class="col-lg-8">
-                                <div class="d-flex gap-3 justify-content-end text-nowrap flex-wrap">
-                                    <a href="{{route('admin.product.add-new')}}" class="btn btn-primary">
-                                        <i class="tio-add"></i> Tambah Produk
-                                    </a>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -54,9 +46,8 @@
                                     <th>Harga Jual</th>
                                     <th class="text-center">Total Terjual</th>
                                     <th>Stok</th>
-                                    <th>Status</th>
-                                    <th>Rekomendasikan</th>
-                                    <th class="text-center">Aksi</th>
+                                    <th>Tersedia</th>
+                                    <th class="text-center">Perbarui Harga</th>
                                 </tr>
                                 </thead>
 
@@ -67,69 +58,59 @@
                                         <td>
                                             <div class="media align-items-center gap-3">
                                                 <div class="avatar">
-                                                    <img src="{{$product['imageFullPath']}}" class="rounded img-fit" alt="product">
+                                                    <img src="{{$product['imageFullPath']}}" class="rounded img-fit" alt="produk">
                                                 </div>
-
                                                 <div class="media-body">
-                                                    <a class="text-dark" href="{{route('admin.product.view',[$product['id']])}}">
                                                         {{ Str::limit($product['name'], 30) }}
-                                                    </a>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>Rp {{number_format($product['price'])}}</td>
+
+                                        @php($productByBranch = json_decode($product->product_by_branch, true))
+                                        @if(isset($productByBranch[0]))
+                                            <td>Rp {{number_format($productByBranch[0]['price']) }}</td>
+                                        @else
+                                            <td>Rp {{number_format($product['price']) }}</td>
+                                        @endif
                                         <td class="text-center">{{\App\Models\OrderDetail::whereHas('order', function ($q){
-                                                    $q->where('order_status', 'delivered');
+                                                    $q->where('order_status', 'delivered')
+                                                        ->where('branch_id',  auth('branch')->id());
                                                 })->where('product_id', $product->id)->sum('quantity')}}
                                         </td>
                                         <td>
-                                            <div><span class="">Tipe Stok : {{ $product->main_branch_product?->stock_type == 'unlimited' ? 'Selalu ada' : 'Tetap' }}</span></div>
-                                            @if(isset($product->main_branch_product) && $product->main_branch_product->stock_type != 'unlimited')
-                                                <div><span class="">Stok : {{ $product->main_branch_product->stock - $product->main_branch_product->sold_quantity }}</span></div>
+                                            <div><span class="">Tipe Stok : {{ ucfirst($product->sub_branch_product?->stock_type == 'unlimited' ? 'Selalu ada' : 'Tetap') }}</span></div>
+                                            @if(isset($product->sub_branch_product) && $product->sub_branch_product->stock_type != 'unlimited')
+                                                <div><span class="">Stok : {{ $product->sub_branch_product->stock - $product->sub_branch_product->sold_quantity }}</span></div>
                                             @endif
                                         </td>
                                         <td>
                                             <div>
                                                 <label class="switcher">
-                                                    <input id="{{$product['id']}}" class="switcher_input status-change" type="checkbox" {{$product['status']==1? 'checked' : ''}}
-                                                        data-url="{{route('admin.product.status',[$product['id'],0])}}">
-                                                    <span class="switcher_control"></span>
-                                                </label>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div>
-                                                <label class="switcher">
-                                                    <input id="recommended-{{$product['id']}}" class="switcher_input recommended-status-change" type="checkbox" {{$product['is_recommended']==1? 'checked' : ''}}
-                                                    data-url="{{route('admin.product.recommended',[$product['id'],0])}}">
-                                                    <span class="switcher_control"></span>
+                                                    @forelse($product->product_by_branch as $item)
+                                                        <input id="{{$product['id']}}" class="switcher_input"
+                                                            type="checkbox" {{ ($item->product_id == $product->id) && $item->is_available == 1 ? 'checked' : ''}}
+                                                            data-url="{{route('branch.product.status',[$product['id'],0])}}" onchange="status_change(this)">
+                                                        <span class="switcher_control"></span>
+                                                    @empty
+                                                        <input id="{{$product['id']}}" class="switcher_input" type="checkbox"
+                                                            data-url="{{route('branch.product.status',[$product['id'],0])}}" onchange="status_change(this)">
+                                                        <span class="switcher_control"></span>
+                                                    @endforelse
                                                 </label>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-2">
                                                 <a class="btn btn-outline-info btn-sm edit square-btn"
-                                                href="{{route('admin.product.edit',[$product['id']])}}"><i class="tio-edit"></i></a>
-                                                <button type="button" class="btn btn-outline-danger btn-sm delete square-btn form-alert"
-                                                        data-id="product-{{$product['id']}}"
-                                                        data-message="Ingin menghapus produk ini?">
-                                                    <i class="tio-delete"></i>
-                                                </button>
+                                                    href="{{route('branch.product.set-price',[$product['id']])}}"><i class="tio-edit"></i></a>
                                             </div>
-                                            <form action="{{route('admin.product.delete',[$product['id']])}}"
-                                                method="post" id="product-{{$product['id']}}">
-                                                @csrf @method('delete')
-                                            </form>
-                                            <form action=""
-                                                method="post" id="product-{{$product['id']}}">
-                                                @csrf @method('delete')
-                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach
                                 </tbody>
                             </table>
                         </div>
+
                         <div class="table-responsive mt-4 px-3">
                             <div class="d-flex justify-content-lg-end">
                                 {!! $products->links() !!}
@@ -145,23 +126,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
-
-        $(".recommended-status-change").change(function() {
-            var value = $(this).val();
-            let url = $(this).data('url');
-            console.log(value, url);
-            status_change(this, url);
-        });
-
-        function recommended_status_change(t) {
+        "use strict"
+        function status_change(t) {
             let url = $(t).data('url');
             let checked = $(t).prop("checked");
             let status = checked === true ? 1 : 0;
 
             Swal.fire({
-                title: 'Kamu yakin?',
-                text: 'Ingin merubah status rekomendasi produk',
+                title: 'Kamu Yakin?',
+                text: 'Ingin merubah status',
                 type: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#FC6A57',
@@ -182,13 +155,26 @@
                                 status: status
                             },
                             success: function (data, status) {
-                                toastr.success("Status berhasil diubah");
+
+                                if(data.variation_message !== undefined ){
+                                    toastr.error(data.variation_message);
+
+                                }
+                                if(data.success_message !== undefined ){
+                                    toastr.success(data.success_message);
+
+                                }
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 2000);
+
                             },
                             error: function (data) {
                                 toastr.error("Status gagal diubah");
-                            }
+                            },
                         });
                     }
+
                     else if (result.dismiss) {
                         if (status == 1) {
                             $('#' + t.id).prop('checked', false)
@@ -196,10 +182,11 @@
                         } else if (status == 0) {
                             $('#'+ t.id).prop('checked', true)
                         }
-                        toastr.info("Status produk yang direkomendasikan belum berubah");
+                        toastr.info("Status belum berubah");
                     }
                 }
             )
         }
     </script>
+
 @endpush

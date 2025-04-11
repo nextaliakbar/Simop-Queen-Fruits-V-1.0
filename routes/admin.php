@@ -40,7 +40,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
         Route::post('settings', [SystemController::class, 'settings_update']);
         Route::post('settings-password', [SystemController::class, 'settings_password_update'])->name('settings-password');
 
-        Route::group(['prefix' => 'pos', 'as' => 'pos.', 'middleware' => ['module:pos_management']], function() {
+        Route::group(['prefix' => 'pos', 'as' => 'pos.', 'middleware' => ['module:Manajemen Kasir']], function() {
             Route::get('orders', [POSController::class, 'list'])->name('orders');
             Route::get('/', [POSController::class, 'index'])->name('index');
             Route::get('quick-view', [POSController::class, 'quick_view'])->name('quick-view');
@@ -62,7 +62,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::get('invoice/{id}', [POSController::class, 'generate_invoice']);
         });
         
-        Route::group(['prefix' => 'orders', 'as' => 'orders.', 'middleware' => ['module:order_management']], function() {
+        Route::group(['prefix' => 'orders', 'as' => 'orders.', 'middleware' => ['module:Manajemen Pesanan']], function() {
             Route::get('list/{status}', [OrderController::class, 'list'])->name('list');
             Route::get('details/{id}', [OrderController::class, 'details'])->name('details');
             Route::get('generate-invoice/{id}', [OrderController::class, 'generate_invoice'])->name('generate-invoice');
@@ -72,14 +72,14 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::post('increase-preparation-time/{id}', [OrderController::class, 'preparation_time'])->name('increase-preparation-time');
             Route::get('payment-status', [OrderController::class, 'payment_status'])->name('payment-status');
             Route::get('add-delivery-man/{order_id}/{delivery_man_id}', [OrderController::class, 'add_deliveryman'])->name('add-delivery-man');
-            Route::get('ajax-change-delivery-time-date/{order_id}', [OrderController::class, 'ajax_change_delivery_time_date'])->name('ajax-change-delivery-time-date');
+            Route::get('ajax-change-delivery-time-date/{order_id}', [OrderController::class, 'ajax_change_delivery_time_and_date'])->name('ajax-change-delivery-time-date');
             Route::get('verify-offline-payment/{order_id}/{status}', [OrderController::class, 'verify_offline_payment']);
         });
 
         Route::get('verify-offline-payment/{status}', [OfflinePaymentMethodController::class, 'offline_payment_list'])->name('verify-offline-payment');
         Route::get('verify-offline-payment/quick-view-details', [OfflinePaymentMethodController::class, 'quick_view_details'])->name('offline-modal-view');
 
-        Route::group(['prefix' => 'category', 'as' => 'category.', 'middleware' => ['module:product_management']], function(){
+        Route::group(['prefix' => 'category', 'as' => 'category.', 'middleware' => ['module:Manajemen Produk']], function(){
             Route::get('add', [CategoryController::class, 'index'])->name('add');
             Route::get('add-sub-category', [CategoryController::class, 'sub_index'])->name('add-sub-category');
             Route::post('store', [CategoryController::class, 'store'])->name('store'); 
@@ -91,7 +91,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::get('priority', [CategoryController::class, 'priority'])->name('priority');
         });
 
-        Route::group(['prefix' => 'product', 'as' => 'product.', 'middleware' => ['module:product_management']], function(){
+        Route::group(['prefix' => 'product', 'as' => 'product.', 'middleware' => ['module:Manajemen Produk']], function(){
             Route::get('add-new', [ProductController::class, 'index'])->name('add-new');
             Route::post('store', [ProductController::class, 'store'])->name('store');
             Route::get('list', [ProductController::class, 'list'])->name('list');
@@ -104,7 +104,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::delete('delete/{id}', [ProductController::class, 'delete'])->name('delete');
         });
 
-        Route::group(['prefix' => 'customer', 'as' => 'customer.', 'middleware' => ['actch', 'module:user_management']], function(){
+        Route::group(['prefix' => 'customer', 'as' => 'customer.', 'middleware' => ['actch', 'module:Manajemen Pengguna']], function(){
             Route::get('list', [CustomerController::class, 'list'])->name('list');
             Route::get('view/{user_id}', [CustomerController::class, 'view'])->name('view');
             Route::get('update-status', [CustomerController::class, 'update_status'])->name('update_status');
@@ -112,7 +112,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             
         });
 
-        Route::group(['prefix' => 'reviews', 'as' => 'reviews.', 'middleware' => ['module:product_management']], function(){
+        Route::group(['prefix' => 'reviews', 'as' => 'reviews.', 'middleware' => ['module:Manajemen Produk']], function(){
             Route::get('list', [ReviewController::class, 'list'])->name('list');
         });
 
@@ -125,7 +125,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::delete('delete/{id}', [BannerController::class, 'delete'])->name('delete');
         });
 
-        Route::group(['prefix' => 'delivery-man', 'as' => 'delivery-man.', 'middleware' => ['module:user_management']], function(){
+        Route::group(['prefix' => 'delivery-man', 'as' => 'delivery-man.', 'middleware' => ['module:Manajemen Pengguna']], function(){
             Route::get('list', [DeliveryManController::class, 'list'])->name('list');
             Route::get('add', [DeliveryManController::class, 'index'])->name('add');
             Route::post('store', [DeliveryManController::class, 'store'])->name('store');
@@ -140,7 +140,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             });
         });
 
-        Route::group(['prefix' => 'custom-role', 'as' => 'custom-role.', 'middleware' => ['module:user_management']], function(){
+        Route::group(['prefix' => 'custom-role', 'as' => 'custom-role.', 'middleware' => ['module:Manajemen Pengguna']], function(){
             Route::get('create', [CustomRoleController::class, 'create'])->name('create');
             Route::post('create', [CustomRoleController::class, 'store'])->name('store');
             Route::get('update/{id}', [CustomRoleController::class, 'edit'])->name('update');
@@ -149,7 +149,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::get('change-status/{id}', [CustomRoleController::class, 'change_status'])->name('change-status');
         });
 
-        Route::group(['prefix' => 'employee', 'as' => 'employee.', 'middleware' => ['module:user_management']], function(){
+        Route::group(['prefix' => 'employee', 'as' => 'employee.', 'middleware' => ['module:Manajemen Pengguna']], function(){
             Route::get('add-new', [EmployeeController::class, 'index'])->name('add-new');
             Route::post('add-new', [EmployeeController::class, 'store']);
             Route::get('list', [EmployeeController::class, 'list'])->name('list');
@@ -159,7 +159,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::delete('delete', [EmployeeController::class, 'delete'])->name('delete');
         });
 
-        Route::group(['prefix' => 'business-settings', 'as' => 'business-settings.', 'middleware' => ['module:system_management']], function(){
+        Route::group(['prefix' => 'business-settings', 'as' => 'business-settings.', 'middleware' => ['module:Manajemen Sistem']], function(){
             Route::group(['prefix' => 'store', 'as' => 'store.'], function(){
                 Route::get('store-setup', [BusinessSettingsController::class, 'store_index'])->name('store-setup')->middleware('actch');
                 Route::post('update-setup', [BusinessSettingsController::class, 'store_setup'])->name('update-setup')->middleware('actch');
@@ -178,8 +178,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
                 Route::post('order-update', [BusinessSettingsController::class, 'order_update'])->name('order-update');
             });
 
-            Route::group(['prefix' => 'web-app', 'as' => 'web-app.', 'middleware' => ['module:system_management']], function(){
-                Route::group(['prefix' => 'third-party', 'as' => 'third-party.', 'middleware' => ['module:system_management']], function() {
+            Route::group(['prefix' => 'web-app', 'as' => 'web-app.', 'middleware' => ['module:Manajemen Sistem']], function(){
+                Route::group(['prefix' => 'third-party', 'as' => 'third-party.', 'middleware' => ['module:Manajemen Sistem']], function() {
                     Route::group(['prefix' => 'offline-payment', 'as' => 'offline-payment.'], function() {
                         Route::get('list', [OfflinePaymentMethodController::class, 'list'])->name('list');
                         Route::get('add', [OfflinePaymentMethodController::class, 'add'])->name('add');
@@ -193,7 +193,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             });
         });
 
-        Route::group(['prefix' => 'branch', 'as' => 'branch.', 'middleware' => ['module:system_management']], function (){
+        Route::group(['prefix' => 'branch', 'as' => 'branch.', 'middleware' => ['module:Manajemen Sistem']], function (){
             Route::get('add-new', [BranchController::class, 'index'])->name('add-new');
             Route::post('store', [BranchController::class, 'store'])->name('store');
             Route::get('list', [BranchController::class, 'list'])->name('list');
@@ -203,7 +203,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::delete('delete/{id}', [BranchController::class, 'delete'])->name('delete'); 
         });
 
-        Route::group(['prefix' => 'promotion', 'as' => 'promotion.', 'middleware' => ['module:system_management']], function() {
+        Route::group(['prefix' => 'promotion', 'as' => 'promotion.', 'middleware' => ['module:Manajemen Sistem']], function() {
             Route::get('status/{id}/{status}', [BranchPromotionController::class, 'status'])->name('status');
         });
     });

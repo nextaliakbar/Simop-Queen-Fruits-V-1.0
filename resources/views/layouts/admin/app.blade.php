@@ -78,7 +78,7 @@
                                     Kamu memiliki pesanan baru
                                 </h2>
                                 <hr>
-                                <button onclick="check_order()" class="btn btn-primary">Check pesanan</button>
+                                <button onclick="check_order()" class="btn btn-primary">Cek pesanan</button>
                             </center>
                         </div>
                     </div>
