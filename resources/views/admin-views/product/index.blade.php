@@ -119,6 +119,7 @@
                                                         </label>
                                                         <select name="discount_type" class="form-control js-select2-custom" id="discount_type">
                                                             <option selected disabled>---Pilih---</option>
+                                                            <option value="nothing">Tidak Ada</option>
                                                             <option value="percent">Diskon persentase</option>
                                                             <option value="amount">Diskon langsung</option>
                                                         </select>
@@ -140,6 +141,7 @@
                                                         </label>
                                                         <select name="tax_type" class="form-control js-select2-custom" id="tax_type">
                                                             <option selected disabled>---Pilih---</option>
+                                                            <option value="nothing">Tidak Ada</option>
                                                             <option value="percent">Pajak persentase</option>
                                                             <option value="amount">Pajak langsung</option>
                                                         </select>
@@ -588,6 +590,9 @@
             else if(this.value === 'percent') {
                 $("#discount_label").text("Diskon Persentase")
                 $("#discount_input").attr("placeholder", "Contoh : 5%")
+            } else {
+                $("#discount_label").text("Diskon");
+                $("#discount_input").attr("placeholder", "Kosongkan jika tidak perlu")   
             }
         });
 
@@ -599,6 +604,9 @@
             else if(this.value === 'percent') {
                 $("#tax_label").text("Pajak persentase")
                 $("#tax_input").attr("placeholder", "Contoh : 12%")
+            } else {
+                $("#tax_label").text("Tarif pajak");
+                $("#tax_input").attr("placeholder", "Kosongkan jika tidak perlu")   
             }
         });
 

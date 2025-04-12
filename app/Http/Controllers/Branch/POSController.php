@@ -1,29 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Branch;
 
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
-use App\Models\Admin;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\CustomerAddress;
 use App\Models\DeliveryMan;
-use App\Models\OfflinePayment;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
 use App\Models\ProductByBranch;
-use App\Models\User;
 use Brian2694\Toastr\Facades\Toastr;
-use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Contracts\Support\Renderable;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -31,32 +28,30 @@ class POSController extends Controller
 {
     public function __construct(
         private User $user,
-        private Admin $admin,
-        private Branch $branch,
+        private Order $order,
         private Category $category,
         private Product $product,
-        private Order $order,
+        private Branch $branch,
         private ProductByBranch $product_by_branch,
+        private CustomerAddress $customer_address,
         private OrderDetail $order_detail,
         private DeliveryMan $delivery_man
-    ) {}
+    ){}
 
-    public function index(Request $request)
+    public function index(Request $request): Renderable
     {
-        $selected_branch = session()->get('branch_id') ?? 1;
-        session()->put('branch_id', $selected_branch);
-
         $category = $request->query('category_id', 0);
         $categories = $this->category->where(['position' => 0])->active()->get();
         $keyword = $request->keyword;
         $key = explode(' ', $keyword);
 
         $products = $this->product
-        ->with(['branch_products' => function ($q) use ($selected_branch) {
-            $q->where(['is_available' => 1, 'branch_id' => $selected_branch]);
+        ->with('product_by_branch')
+        ->with(['product_by_branch' => function ($q) {
+            $q->where(['is_available' => 1, 'branch_id' => auth('branch')->id()]);
         }])
-        ->whereHas('branch_products', function ($q) use ($selected_branch) {
-            $q->where(['is_available' => 1, 'branch_id' => $selected_branch]);
+        ->whereHas('product_by_branch', function ($q)  {
+            $q->where(['is_available' => 1, 'branch_id' => auth('branch')->id()]);
         })
         ->when($request->has('category_id') && $request['category_id'] != 0, function ($query) use ($request) {
             $query->whereJsonContains('category_ids', [['id' => (string) $request['category_id']]]);
@@ -69,10 +64,39 @@ class POSController extends Controller
             });
         })
         ->active()->latest()->paginate(Helpers::get_pagination());
+    
+        $branch = $this->branch->find(auth('branch')->id());
 
-        $branches = $this->branch->select('id', 'name')->get();
-        
-        return view('admin-views.pos.index', compact('categories', 'products', 'category', 'keyword', 'branches'));
+        return view('branch-views.pos.index', compact('categories', 'products', 'category', 'keyword', 'branch'));
+    }
+
+    public function list(Request $request): Renderable
+    {
+        $query_param = [];
+        $from = $request['from'];
+        $to = $request['to'];
+        $search = $request['search'];
+
+        $this->order->where(['checked' => 0])->update(['checked' => 1]);
+
+        $query = $this->order->pos()->with(['customer', 'branch'])->where('branch_id', auth('branch')->id());
+
+        if($request->has('search')) {
+            $key = explode(' ', $search);
+            $query = $query->where(function($q) use ($key) {
+                foreach($key as $value) {
+                    $q->orWhere('id', 'like', "%{$value}%")
+                    ->orWhere('order_status', 'like', "%{$value}%")
+                    ->orWhere('transaction_reference', 'like', "%{$value}%");
+                }
+            });
+
+            $query_param = ['search' => $search];
+        }
+
+        $orders = $query->latest()->paginate(Helpers::get_pagination())->appends($query_param);
+
+        return view('branch-views.pos.order.list', compact('orders', 'search', 'from', 'to'));
     }
 
     public function order(Request $request): RedirectResponse
@@ -105,7 +129,7 @@ class POSController extends Controller
             $address_data = session()->get('address');
             $distance = $address_data['distance'] ?? 0;
             
-            $delivery_charge = Helpers::get_delivery_charge(session()->get('branch_id') ?? 1, $distance);
+            $delivery_charge = Helpers::get_delivery_charge(auth('branch')->id() ?? 1, $distance);
 
             $address = [
                 'address_type' => 'Home',
@@ -167,7 +191,7 @@ class POSController extends Controller
 
                     $product = Helpers::product_data_formatting($product);
 
-                    $branch_product = $this->product_by_branch->where(['product_id' => $c['id'], 'branch_id' => session()->get('branch_id')])->first();
+                    $branch_product = $this->product_by_branch->where(['product_id' => $c['id'], 'branch_id' => auth('branch')->id()])->first();
 
                     $discount_data = [];
 
@@ -219,74 +243,107 @@ class POSController extends Controller
         $total_tax_amount = ($tax > 0) ? (($total_price * $tax) / 100) : $total_tax_amount;
 
         try {
-
             $order->extra_discount = $extra_discount ?? 0;
             $order->total_tax_amount = $total_tax_amount;
             $order->order_amount = $total_price + $total_tax_amount;
             $order->coupon_discount_amount = 0.00;
-            $order->branch_id = session()->get('branch_id');
+            $order->branch_id = auth('branch')->id();
 
-            if(session('branch_id')) {
-                $order->save();
+            $order->save();
 
-                foreach($order_details as $key => $item) {
-                    $order_details[$key]['order_id'] = $order->id;
-                }
-
-                $this->order_detail->insert($order_details);
-
-                session()->forget('cart');
-                session(['last_order' => $order->id]);
-                session()->forget('customer_id');
-                session()->forget('branch_id'); 
-                session()->forget('address'); 
-                session()->forget('order_type');
-                
-                Toastr::success('Pesanan berhasil dibuat');
-                
-                // Kirim notifikasi ke pelanggan untuk pesanan tipe pengiriman
-                
-                if($order->order_type == 'delivery') {
-                    $message = Helpers::order_status_update_message('confirmed');
-                    $customer = $this->user->find($order->user_id);
-                    $customer_fcm_token = $customer?->cm_firebase_token;
-                    $customer_name = $customer?->f_name . ' ' . $customer?->l_name ?? '';
-
-                    $store_name = 'Queen Fruits';
-                    $value = Helpers::text_variable_data_format(value: $message, user_name: $customer_name, store_name: $store_name, order_id : $order_id);
-                
-                    if($value && isset($customer_fcm_token)) {
-                        $data = [
-                            'title' => 'Pesanan',
-                            'description' => $value,
-                            'order_id' => $order_id,
-                            'image' => '',
-                            'type' => 'order_status'
-                        ];
-
-                        Helpers::send_push_notif_to_device($customer_fcm_token, $data);
-                    }
-                }
-
-                // Kirim email
-                try {
-                    $email_service = []; // mail_config
-                    $order_mail_status = 0; //place_order_mail_status_user
-                    if(isset($email_service['status']) && $email_service['status'] == 1 && $order_mail_status == 1 && isset($customer)) {
-                        
-                    }
-                } catch(\Exception $ex) {
-                    info($ex);
-                }
-                
-                return back();
-            } else {
-                Toastr::warning('Silahkan pilih salah satu cabang');
+            foreach($order_details as $key => $item) {
+                $order_details[$key]['order_id'] = $order->id;
             }
 
+            $this->order_detail->insert($order_details);
+
+            session()->forget('cart');
+            session(['last_order' => $order->id]);
+            session()->forget('customer_id');
+            session()->forget('address'); 
+            session()->forget('order_type');
+            
+            Toastr::success('Pesanan berhasil dibuat');
+            
+            // Kirim notifikasi ke pelanggan untuk pesanan tipe pengiriman
+            
+            if($order->order_type == 'delivery') {
+                $message = Helpers::order_status_update_message('confirmed');
+                $customer = $this->user->find($order->user_id);
+                $customer_fcm_token = $customer?->cm_firebase_token;
+                $customer_name = $customer?->f_name . ' ' . $customer?->l_name ?? '';
+
+                $store_name = 'Queen Fruits';
+                $value = Helpers::text_variable_data_format(value: $message, user_name: $customer_name, store_name: $store_name, order_id : $order_id);
+            
+                if($value && isset($customer_fcm_token)) {
+                    $data = [
+                        'title' => 'Pesanan',
+                        'description' => $value,
+                        'order_id' => $order_id,
+                        'image' => '',
+                        'type' => 'order_status'
+                    ];
+
+                    Helpers::send_push_notif_to_device($customer_fcm_token, $data);
+                }
+            }
+
+            // Kirim email
+            try {
+                $email_service = []; // mail_config
+                $order_mail_status = 0; //place_order_mail_status_user
+                if(isset($email_service['status']) && $email_service['status'] == 1 && $order_mail_status == 1 && isset($customer)) {
+                    
+                }
+            } catch(\Exception $ex) {
+                info($ex);
+            }
+            
+            return back();
         } catch(\Exception $ex) {
             info($ex);
         }
+        return back();
+    }
+
+    public function update_discount(Request $request): RedirectResponse
+    {
+        if(session()->has('cart')) {
+            if(count(session()->get('cart')) < 1) {
+                Toastr::error('Keranjang masih kosong');
+                return back();
+            }
+        } else {
+            Toastr::error('Keranjang masih kosong');
+            return back();
+        }
+
+        if($request->type == 'percent' && $request->discount < 0) {
+            Toastr::error('Ekstra diskon tidak boleh kurang dari 0 %');
+            return back();
+        } elseif($request->type == 'percent' && $request->discount > 100) {
+            Toastr::error('Ekstra diskon tidak boleh lebih dari 100 %');
+            return back();
+        }
+
+        $total_price = 0;
+        foreach(session()->get('cart') as $cart) {
+            if(isset($cart['price'])) {
+                $total_price += ($cart['price'] - $cart['discount']);
+            }
+        }
+
+        if($request->type == 'amount' && $request->discount > $total_price) {
+            Toastr::error('Ekstra diskon tidak boleh lebih dari total pesanan produk');
+            return back();
+        }
+
+        $cart = $request->session()->get('cart', collect([]));
+        $cart['extra_discount_type'] = $request->type;
+        $cart['extra_discount'] = $request->discount;
+
+        $request->session()->put('cart', $cart);
         return back();
     }
 
@@ -322,11 +379,11 @@ class POSController extends Controller
 
     public function quick_view(Request $request): JsonResponse
     {
-        $product = $this->product->findOrFail($request->product_id);
+        $product = $this->product->with('product_by_branch')->findOrFail($request->product_id);
 
         return response()->json([
             'success' => 1,
-            'view' => view('admin-views.pos._quick-view-data', compact('product'))->render()
+            'view' => view('branch-views.pos._quick-view-data', compact('product'))->render()
         ]);
     }
 
@@ -336,7 +393,7 @@ class POSController extends Controller
 
         $price = $product->price;
 
-        $branch_product = $this->product_by_branch->where(['product_id' => $request->id, 'branch_id' => session()->get('branch_id')])->first();
+        $branch_product = $this->product_by_branch->where(['product_id' => $request->id, 'branch_id' => auth('branch')->id()])->first();
 
         if(isset($branch_product)) {
             $branch_product_variations = $branch_product->variations;
@@ -371,7 +428,7 @@ class POSController extends Controller
         $price = 0;
         $variation_price = 0;
 
-        $branch_product = $this->product_by_branch->where(['product_id' => $request->id, 'branch_id' => session()->get('branch_id')])->first();
+        $branch_product = $this->product_by_branch->where(['product_id' => $request->id, 'branch_id' => auth('branch')->id()])->first();
 
         $branch_product_price = 0;
         $discount_data = [];
@@ -462,7 +519,7 @@ class POSController extends Controller
 
     public function cart_items(): Renderable
     {
-        return view('admin-views.pos._cart');
+        return view('branch-views.pos._cart');
     }
 
     public function update_quantity(Request $request): JsonResponse
@@ -503,16 +560,6 @@ class POSController extends Controller
         return response()->json($request['key'], 200);
     }
 
-    public function session_destroy(Request $request): JsonResponse
-    {
-        Session::forget('cart');
-        Session::forget('customer_id');
-        session()->forget('address');
-        session()->forget('order_type');
-
-        return response()->json([], 200);
-    }
-
     public function order_type_store(Request $request): JsonResponse
     {
         session()->put('order_type', $request['order_type']);
@@ -535,7 +582,7 @@ class POSController extends Controller
             return response()->json(['errors' => Helpers::error_processor($validator)]);
         }
 
-        $branch_id = session()->get('branch_id');
+        $branch_id = auth('branch')->id();
         $branch = $this->branch->find($branch_id);
         $origin_lat = $branch['latitude'];
         $origin_lng = $branch['longitude'];
@@ -565,99 +612,8 @@ class POSController extends Controller
 
         return response()->json([
             'data' => $address,
-            'view' => view('admin-views.pos._address', compact('address'))->render()
+            'view' => view('branch-views.pos._address', compact('address'))->render()
         ]);
-    }
-
-    public function update_discount(Request $request): RedirectResponse
-    {
-        if(session()->has('cart')) {
-            if(count(session()->get('cart')) < 1) {
-                Toastr::error('Keranjang masih kosong');
-                return back();
-            }
-        } else {
-            Toastr::error('Keranjang masih kosong');
-            return back();
-        }
-
-        if($request->type == 'percent' && $request->discount < 0) {
-            Toastr::error('Ekstra diskon tidak boleh kurang dari 0 %');
-            return back();
-        } elseif($request->type == 'percent' && $request->discount > 100) {
-            Toastr::error('Ekstra diskon tidak boleh lebih dari 100 %');
-            return back();
-        }
-
-        $total_price = 0;
-        foreach(session()->get('cart') as $cart) {
-            if(isset($cart['price'])) {
-                $total_price += ($cart['price'] - $cart['discount']);
-            }
-        }
-
-        if($request->type == 'amount' && $request->discount > $total_price) {
-            Toastr::error('Ekstra diskon tidak boleh lebih dari total pesanan produk');
-            return back();
-        }
-
-        $cart = $request->session()->get('cart', collect([]));
-        $cart['extra_discount_type'] = $request->type;
-        $cart['extra_discount'] = $request->discount;
-
-        $request->session()->put('cart', $cart);
-        return back();
-    }
-
-    public function list(Request $request) : Renderable
-    {
-        $query_param = [];
-        $search = $request['search'];
-        $branch_id = $request['branch_id'];
-        $from = $request['from'];
-        $to = $request['to'];
-
-        $query = $this->order->pos()->with(['customer', 'branch']);
-        $branches = $this->branch->all();
-
-        if($request->has('search')) {
-            $key = explode(' ', $request['search']);
-            $query = $query->where(function ($q) use ($key) {
-                foreach($key as $value) {
-                    $q->orWhere('id', 'like', "%{$value}%")
-                    ->orWhere('order_status', 'like', "%{$value}%")
-                    ->orWhere('transaction_reference', 'like', "%{$value}%");
-                }
-            });
-
-            $query_param = ['search' => $request['search']];
-        } elseif($request->has('filter')) {
-            $query->when($from && $to && $branch_id == 'all', function ($q) use ($from, $to) {
-                $q->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()]);
-            })
-            ->when($from && $to &&$branch_id != 'all', function($q) use ($from, $to, $branch_id) {
-                $q->whereBetween('created_at', [$from, Carbon::parse($to)->endOfDay()])
-                ->whereHas('branch', function ($q) use ($branch_id) {
-                    $q->where('id', $branch_id);
-                });
-            })
-            ->when($from == null && $to == null && $branch_id != 'all', function ($q) use ($from, $to, $branch_id) {
-                $q->whereHas('branch', function ($q) use ($branch_id) {
-                    $q->where('id', $branch_id);
-                });
-            })->get();
-
-            $query_param = [
-                'filter' => '', 
-                'branch_id' => $request['branch_id'] ?? '', 
-                'from' => $request['from'] ?? '', 
-                'to' => $request['to'] ?? ''
-            ];
-        }
-
-        $orders = $query->latest()->paginate(Helpers::get_pagination())->appends($query_param);
-
-        return view('admin-views.pos.order.list', compact('orders', 'search', 'branches', 'from', 'to', 'branch_id'));
     }
 
     public function order_details($id): Renderable|RedirectResponse
@@ -675,7 +631,7 @@ class POSController extends Controller
             ->orWhere('branch_id', 0);
         })->get();
 
-        return view('admin-views.order.order-view', compact('order', 'deliverymen'));
+        return view('branch-views.order.order-view', compact('order', 'deliverymen'));
     }
 
     public function generate_invoice($id): JsonResponse
@@ -684,7 +640,7 @@ class POSController extends Controller
 
         return response()->json([
             'success' => 1,
-            'view' => view('admin-views.pos.order.invoice', compact('order'))->render()
+            'view' => view('branch-views.pos.order.invoice', compact('order'))->render()
         ]);
     }
 }

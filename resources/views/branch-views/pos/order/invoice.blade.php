@@ -1,12 +1,12 @@
 <div class="print-area-content" id="printableAreaContent">
     <div class="text-center pt-4 mb-3 w-100">
-        <h2 class="custom-title">{{App\CentralLogics\Helpers::get_business_settings('store_name')}}</h2>
+        <h2 class="custom-title">{{App\Models\Branch::find(auth('branch')->id() ?? 1)->name}}</h2>
         <h5 class="custom-h5">
-            {{App\CentralLogics\Helpers::get_business_settings('address')}}
+            {{App\Models\Branch::find(auth('branch')->id() ?? 1)->address}}
         </h5>
         <h5 class="custom-phone">
             No. Hp
-            : {{App\CentralLogics\Helpers::get_business_settings('phone')}}
+            : {{App\Models\Branch::find(auth('branch')->id() ?? 1)->phone}}
         </h5>
     </div>
 

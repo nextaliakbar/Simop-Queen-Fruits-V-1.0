@@ -49,7 +49,7 @@ class OrderController extends Controller
 
     public function status(Request $request): RedirectResponse
     {
-        $order = $this->order->where(['id' => $request->input('id'), 'branch_id' => auth('user')->id()]);
+        $order = $this->order->where(['id' => $request->id, 'branch_id' => auth('branch')->id()])->first();
 
         if(in_array($order->order_status, ['delivered', 'failed'])) {
             Toastr::warning('Pesanan dengan status ' . $order->order_status . ' tidak dapat  diubah');
@@ -61,7 +61,7 @@ class OrderController extends Controller
             return back();
         }
         
-        if($request->order_status == 'delivered' && $request->order_status == 'out_for_delivery' && $order['delivery_man_id'] == null && $order['order_type'] != 'take_away') {
+        if($request->order_status == 'delivered' || $request->order_status == 'out_for_delivery' && $order['delivery_man_id'] == null && $order['order_type'] != 'take_away') {
             Toastr::warning('Tetapkan kurir terlebih dahulu');
             return back();
         }
@@ -256,6 +256,22 @@ class OrderController extends Controller
         }
 
         Toastr::success('Waktu persiapan pesanan diperbarui');
+        return back();
+    }
+
+    public function payment_status(Request $request): RedirectResponse
+    {
+        $order = $this->order->find($request->id);
+        if($request->payment_status == 'paid' && $order['transaction_reference'] == null 
+        && !in_array($order['payment_method'], ['offline_payment','card'])) {
+            Toastr::warning('Tambahkan kode referensi pembayaran terlebih dahulu');
+            return back();   
+        }
+
+        $order->payment_status = $request->payment_status;
+        $order->save();
+
+        Toastr::success('Status pembayaran diperbarui');
         return back();
     }
 

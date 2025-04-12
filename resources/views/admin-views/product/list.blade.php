@@ -78,14 +78,13 @@
                                             </div>
                                         </td>
                                         <td>Rp {{number_format($product['price'])}}</td>
-                                        <td class="text-center">{{\App\Models\OrderDetail::whereHas('order', function ($q){
-                                                    $q->where('order_status', 'delivered');
-                                                })->where('product_id', $product->id)->sum('quantity')}}
+                                        @php( $sold = \App\Models\OrderDetail::whereHas('order', function ($q){$q->where('order_status', 'delivered');})->where('product_id', $product->id)->sum('quantity'))
+                                        <td class="text-center">{{$sold}}
                                         </td>
                                         <td>
                                             <div><span class="">Tipe Stok : {{ $product->main_branch_product?->stock_type == 'unlimited' ? 'Selalu ada' : 'Tetap' }}</span></div>
                                             @if(isset($product->main_branch_product) && $product->main_branch_product->stock_type != 'unlimited')
-                                                <div><span class="">Stok : {{ $product->main_branch_product->stock - $product->main_branch_product->sold_quantity }}</span></div>
+                                                <div><span class="">Stok : {{ $product->main_branch_product->stock - $sold}}</span></div>
                                             @endif
                                         </td>
                                         <td>

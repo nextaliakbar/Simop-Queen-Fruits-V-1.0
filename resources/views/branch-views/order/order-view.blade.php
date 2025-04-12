@@ -623,12 +623,12 @@
                             </h4>
                                 @if($order->customer)
                                     <div class="media flex-wrap gap-3">
-                                        <a target="_blank" class="" href="{{route('branch.customer.view',[$order->customer['id']])}}">
+                                        <a target="#" class="">
                                             <img class="avatar avatar-lg rounded-circle" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" 
                                             src="{{$order->customer?->imageFullPath}}" alt="Image">
                                         </a>
                                         <div class="media-body d-flex flex-column gap-1">
-                                            <a target="_blank" href="{{route('branch.customer.view',[$order->customer['id']])}}" class="text-dark"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
+                                            <a target="#" class="text-dark"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
                                             <span class="text-dark">{{$order->customer['orders_count']}} Pesanan</span>
                                             <span class="text-dark">
                                             <i class="tio-call-talking-quiet mr-2"></i>
@@ -713,7 +713,7 @@
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
-                        @foreach($deliverymen as $deliveryMan)
+                        @foreach(\App\Models\DeliveryMan::where(['is_active'=> 1])->whereIn('branch_id', [0, auth('branch')->id()])->get() as $deliveryMan)
                             <li class="list-group-item d-flex flex-wrap align-items-center gap-3 justify-content-between">
                                 <div class="media align-items-center gap-2 flex-wrap">
                                     <div class="avatar">

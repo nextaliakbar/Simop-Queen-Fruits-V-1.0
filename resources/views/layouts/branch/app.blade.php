@@ -6,7 +6,7 @@
     <title>@yield('title')</title>
     {{-- @php($icon = \App\Models\BusinessSetting::where(['key' => 'fav_icon'])->first()->value) --}}
     <link rel="shortcut icon" href="">
-    <link rel="icon" type="image/x-icon" href="{{ asset('storage/store/logo_store_2.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/admin/img/logo_store_2.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{asset('assets/admin')}}/css/vendor.min.css">
     <link rel="stylesheet" href="{{asset('assets/admin')}}/vendor/icon-set/style.css">

@@ -61,9 +61,9 @@ class OrderController extends Controller
     public function status(Request $request): RedirectResponse
     {
         $order = $this->order->find($request->id);
-
+        
         if(in_array($order->order_status, ['delivered', 'failed'])) {
-            Toastr::warning('Pesanan dengan status ' . $order->order_status . ' tidak dapat  diubah');
+            Toastr::warning('Pesanan dengan status ' . $order->order_status == 'delivered' ? 'Terkirim' : 'Gagal Terkirim' . ' tidak dapat  diubah');
             return back();
         }
 
@@ -72,7 +72,7 @@ class OrderController extends Controller
             return back();
         }
         
-        if($request->order_status == 'delivered' && $request->order_status == 'out_for_delivery' && $order['delivery_man_id'] == null && $order['order_type'] != 'take_away') {
+        if($request->order_status == 'delivered' || $request->order_status == 'out_for_delivery' && $order['delivery_man_id'] == null && $order['order_type'] != 'take_away') {
             Toastr::warning('Tetapkan kurir terlebih dahulu');
             return back();
         }

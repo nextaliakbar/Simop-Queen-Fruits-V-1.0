@@ -8,11 +8,10 @@
                     {{-- @php($restaurant_logo=\App\Models\BusinessSetting::where(['key'=>'logo'])->first()->value) --}}
                     <a class="navbar-brand" href="{{route('admin.dashboard')}}" aria-label="Front">
                         <img class="navbar-brand-logo" style="object-fit: contain;"
-                             src="{{asset('storage/store/logo_store_2.png')}}"
+                             src="{{asset('assets/admin/img/logo_store_2.png')}}"
                              alt="Logo">
                         <img class="navbar-brand-logo-mini" style="object-fit: contain;"
-                             onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
-                             src="{{asset('storage/store/logo_store_2.png')}}" alt="Logo">
+                             src="{{asset('assets/admin/img/logo_store_2.png')}}" alt="Logo">
                     </a>
                     <!-- End Logo -->
 

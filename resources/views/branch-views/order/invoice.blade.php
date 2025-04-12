@@ -1,4 +1,4 @@
-@extends('layouts.admin.app')
+@extends('layouts.branch.app')
 
 @section('title','')
 
@@ -55,12 +55,12 @@
             </div>
             <div class="col-5" id="printableAreaContent">
                 <div class="text-center pt-4 mb-3">
-                    <h2 style="line-height: 1">{{\App\Models\BusinessSetting::where(['key'=>'store_name'])->first()->value}}</h2>
+                    <h2 style="line-height: 1">{{App\Models\Branch::find(auth('branch')->id() ?? 1)->name}}</h2>
                     <h5 style="font-size: 20px;font-weight: lighter;line-height: 1">
-                        {{\App\Models\BusinessSetting::where(['key'=>'address'])->first()->value}}
+                        {{App\Models\Branch::find(auth('branch')->id() ?? 1)->address}}
                     </h5>
                     <h5 style="font-size: 16px;font-weight: lighter;line-height: 1">
-                        No. Hp : {{\App\Models\BusinessSetting::where(['key'=>'phone'])->first()->value}}
+                        No. Hp : {{App\Models\Branch::find(auth('branch')->id() ?? 1)->phone}}
                     </h5>
                 </div>
                 <hr class="text-dark hr-style-1">

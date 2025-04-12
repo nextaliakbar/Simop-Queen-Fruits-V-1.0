@@ -208,16 +208,10 @@ class ProductController extends Controller
         $product->image = Helpers::upload('product/', 'png', $request->file('image'));
         $product->available_time_starts = $request->available_time_starts;
         $product->available_time_ends = $request->available_time_ends;
-
-        if($request->tax_type != null) {
-            $product->tax_type = $request->tax_type;
-            $product->tax = $request->tax;
-        }
-
-        if($request->discount_type != null) {
-            $product->discount_type = $request->discount_type;
-            $product->discount = $request->discount;
-        }
+        $product->tax_type = !is_null($request['tax_type']) ? ($request['tax_type'] != 'nothing' ? $request['tax_type'] : null) : null;
+        $product->tax = !is_null($request['tax_type']) ? ($request['tax_type'] != 'nothing' ? $request['tax'] : 0) : 0;
+        $product->discount_type = !is_null($request['discount_type']) ? ($request['discount_type'] != 'nothing' ? $request['discount_type'] : null) : null;
+        $product->discount = !is_null($request['discount_type']) ? ($request['discount_type'] != 'nothing' ? $request['discount'] : 0) : 0;
 
         $product->status = $request->status == 'on' ? 1 : 0;
         $product->is_recommended = $request->is_recommended == 'on' ? 1 : 0;
@@ -458,9 +452,9 @@ class ProductController extends Controller
         $product->available_time_starts = $request->available_time_starts;
         $product->available_time_ends = $request->available_time_ends;
         $product->tax_type = $request['tax_type'] != 'nothing' ? $request['tax_type'] : null;
-        $product->tax = $request['tax'] ?? 0;
+        $product->tax = $request['tax_type'] != 'nothing' ? $request['tax'] : 0;
         $product->discount_type = $request['discount_type'] != 'nothing' ? $request['discount_type'] : null;
-        $product->discount = $request['discount'] ?? 0;
+        $product->discount = $request['discount_type'] != 'nothing' ? $request['discount'] : 0;
         $product->status = $request->status == 'on' ? 1 : 0;
         $product->is_recommended = $request->is_recommended == 'on' ? 1 : 0;
         $product->save();

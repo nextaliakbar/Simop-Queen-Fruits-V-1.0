@@ -1,4 +1,4 @@
-@extends('layouts.admin.app')
+@extends('layouts.branch.app')
 
 @section('title', 'Penjualan Baru')
 
@@ -50,7 +50,7 @@
                                 <div class="pos-item-wrap justify-content-center">
 
                                     @foreach($products as $product)
-                                        @include('admin-views.pos._single_product',['product'=>$product])
+                                        @include('branch-views.pos._single_product',['product'=>$product])
                                     @endforeach
                                 </div>
                             </div>
@@ -74,20 +74,10 @@
                                             <option value="{{$customer['id']}}" {{ session()->get('customer_id') == $customer['id'] ? 'selected' : '' }}>{{$customer['f_name']. ' '. $customer['l_name'] }}</option>
                                         @endforeach
                                     </select>
-                                    <button class="btn btn-success rounded text-nowrap" id="add_new_customer" type="button" data-toggle="modal" data-target="#add-customer" title="Tambah Pelanggan">
+                                    <button class="btn btn-success rounded text-nowrap" id="add_new_customer" type="button" data-toggle="modal" data-target="#add-customer" title="Add Customer">
                                         <i class="tio-add"></i>
                                         Pelanggan
                                     </button>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="branch" class="font-weight-semibold fz-16 text-dark">Cabang</label>
-                                    <select name="branch_id" class="js-select2-custom-x form-ellipsis form-control branch" id="change-branch">
-                                        <option disabled selected>Pilih Cabang</option>
-                                        @foreach($branches as $branch)
-                                            <option value="{{$branch['id']}}" {{ session()->get('branch_id') == $branch['id'] ? 'selected' : '' }}>{{$branch['name']}}</option>
-                                        @endforeach
-                                    </select>
                                 </div>
 
                                 <div class="form-group">
@@ -122,12 +112,12 @@
                                         </span>
                                     </div>
                                     <div class="pos--delivery-options-info d-flex flex-wrap" id="del-add">
-                                        @include('admin-views.pos._address')
+                                        @include('branch-views.pos._address')
                                     </div>
                                 </div>
 
                                 <div class='w-100' id="cart">
-                                    @include('admin-views.pos._cart')
+                                    @include('branch-views.pos._cart')
                                 </div>
                             </div>
                         </div>
@@ -154,7 +144,7 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form action="{{route('admin.pos.customer-store')}}" method="post" id="customer-form">
+                        <form action="{{route('branch.pos.customer-store')}}" method="post" id="customer-form">
                             @csrf
                             <div class="row pl-2">
                                 <div class="col-12 col-lg-6">
@@ -227,7 +217,7 @@
                                 <hr class="non-printable">
                             </div>
                             <div class="row m-auto" id="printableArea">
-                                @include('admin-views.pos.order.invoice')
+                                @include('branch-views.pos.order.invoice')
                             </div>
 
                         </div>
@@ -275,7 +265,7 @@
                                 </div>
 
                                 <?php
-                                    $branchId =(int) session('branch_id') ?? 1;
+                                    $branchId =(int) auth('branch')->id() ?? 1;
                                     $branch = \App\Models\Branch::with(['delivery_charge_setup'])
                                         ->where(['id' => $branchId])
                                         ->first(['id', 'name', 'status']);
@@ -375,11 +365,7 @@
             store_key('customer_id', selectedCustomerId);
         });
 
-        $('.branch').change(function() {
-            var selectedBranchId = $(this).val();
-            store_key('branch_id', selectedBranchId);
-        });
-
+        
         $('.order-type-radio').change(function() {
             var selectedOrderType = $(this).val();
             select_order_type(selectedOrderType);
@@ -408,7 +394,7 @@
                 denyButtonText: `Tidak`
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = '{{route('admin.auth.logout')}}';
+                    window.location.href = '{{route('branch.auth.logout')}}';
                 } else {
                     Swal.fire('Canceled', '', 'info');
                 }
@@ -473,7 +459,7 @@
         }
         function quickView(product_id) {
             $.ajax({
-                url: '{{route('admin.pos.quick-view')}}',
+                url: '{{route('branch.pos.quick-view')}}',
                 type: 'GET',
                 data: {
                     product_id: product_id
@@ -585,7 +571,7 @@
                 });
                 $.ajax({
                     type: "POST",
-                    url: '{{ route('admin.pos.variant_price') }}',
+                    url: '{{ route('branch.pos.variant_price') }}',
                     data: $('#add-to-cart-form').serializeArray(),
                     success: function (data) {
                         if(data.error == 'quantity_error'){
@@ -608,7 +594,7 @@
                     }
                 });
                 $.post({
-                    url: '{{ route('admin.pos.add-to-cart') }}',
+                    url: '{{ route('branch.pos.add-to-cart') }}',
                     data: $('#' + form_id).serializeArray(),
                     beforeSend: function () {
                         $('#loading').show();
@@ -670,7 +656,7 @@
         }
 
         function removeFromCart(key) {
-            $.post('{{ route('admin.pos.remove-from-cart') }}', {_token: '{{ csrf_token() }}', key: key}, function (data) {
+            $.post('{{ route('branch.pos.remove-from-cart') }}', {_token: '{{ csrf_token() }}', key: key}, function (data) {
                 if (data.errors) {
                     for (var i = 0; i < data.errors.length; i++) {
                         toastr.error(data.errors[i].message, {
@@ -690,7 +676,7 @@
         }
 
         function emptyCart() {
-            $.post('{{ route('admin.pos.empty-cart') }}', {_token: '{{ csrf_token() }}'}, function (data) {
+            $.post('{{ route('branch.pos.empty-cart') }}', {_token: '{{ csrf_token() }}'}, function (data) {
                 updateCart();
                 toastr.info('Produk telah dihapus dari keranjang', {
                     CloseButton: true,
@@ -701,7 +687,7 @@
         }
 
         function updateCart() {
-            $.post('<?php echo e(route('admin.pos.cart-items')); ?>', {_token: '<?php echo e(csrf_token()); ?>'}, function (data) {
+            $.post('<?php echo e(route('branch.pos.cart-items')); ?>', {_token: '<?php echo e(csrf_token()); ?>'}, function (data) {
                 $('#cart').empty().html(data);
             });
         }
@@ -718,7 +704,7 @@
 
             var key = element.data('key');
             if (valueCurrent >= minValue) {
-                $.post('{{ route('admin.pos.update-quantity') }}', {_token: '{{ csrf_token() }}', key: key, quantity:valueCurrent}, function (data) {
+                $.post('{{ route('branch.pos.update-quantity') }}', {_token: '{{ csrf_token() }}', key: key, quantity:valueCurrent}, function (data) {
                     updateCart();
                 });
             } else {
@@ -749,7 +735,7 @@
 
         $('.js-data-example-ajax').select2({
             ajax: {
-                url: '{{route('admin.pos.customers')}}',
+                url: '{{route('branch.pos.customers')}}',
                 data: function (params) {
                     return {
                         q: params.term,
@@ -788,7 +774,7 @@
                 }
             });
             $.post({
-                url: '{{route('admin.pos.store-keys')}}',
+                url: '{{route('branch.pos.store-keys')}}',
                 data: {
                     key:key,
                     value:value,
@@ -821,7 +807,7 @@
 
                 $.ajax({
                     type: 'POST',
-                    url: "{{ url('admin/pos/session-destroy') }}",
+                    url: "{{ url('branch/pos/session-destroy') }}",
                     success: function() {
                         location.reload();
                     }
@@ -848,7 +834,7 @@
                 }
             });
             $.post({
-                url: '{{route('admin.pos.order_type.store')}}',
+                url: '{{route('branch.pos.order_type.store')}}',
                 data: {
                     order_type:order_type,
                 },
@@ -968,7 +954,7 @@
                 }
             });
             $.post({
-                url: '{{ route('admin.pos.add-delivery-address') }}',
+                url: '{{ route('branch.pos.add-delivery-address') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
                     $('#loading').show();
