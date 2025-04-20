@@ -95,6 +95,17 @@
                                                         </select>
                                                     </div>
                                                 </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label class="input-label" for="exampleFormControlInput1">Jenis Produk
+                                                            <span class="text-danger">*</span>
+                                                        </label>
+                                                        <select name="product_type" class="form-control js-select2-custom">
+                                                            <option value="1" {{$product['local_product']==1?'selected':''}}>Produk Lokal</option>
+                                                            <option value="0" {{$product['local_product']==0?'selected':''}}>Produk Impor</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

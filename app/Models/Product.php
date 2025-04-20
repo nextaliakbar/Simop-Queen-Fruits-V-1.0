@@ -17,6 +17,7 @@ class Product extends Model
         'price' => 'float',
         'status' => 'integer',
         'discount' => 'float',
+        'local_product' => 'integer',
         'popularity_count' => 'integer',
         'is_recommended' => 'integer',
         'created_at' => 'datetime',

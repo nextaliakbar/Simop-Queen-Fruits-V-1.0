@@ -326,6 +326,14 @@
                                     <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">Banner</span>
                                 </a>
                             </li>
+
+                            <!-- COUPON -->
+                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/coupon*')?'active':''}}">
+                                <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('admin.coupon.add-new')}}">
+                                    <i class="tio-gift nav-icon"></i>
+                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">Kupon</span>
+                                </a>
+                            </li>
                         @endif
 
                         <!-- User Management -->

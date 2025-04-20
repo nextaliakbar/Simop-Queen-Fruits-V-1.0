@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\CustomRoleController;
 use App\Http\Controllers\Admin\DeliveryManController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\BusinessSettingsController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\DeliveryChargeController;
 use App\Http\Controllers\Admin\OfflinePaymentMethodController;
 use App\Http\Controllers\Admin\OrderController;
@@ -123,6 +124,17 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::get('edit/{id}', [BannerController::class, 'edit'])->name('edit');
             Route::put('update/{id}', [BannerController::class, 'update'])->name('update');
             Route::delete('delete/{id}', [BannerController::class, 'delete'])->name('delete');
+        });
+
+        Route::group(['prefix' => 'coupon', 'as' => 'coupon.', 'middleware' => ['module:Manajemen Promosi']], function() {
+            Route::get('add-new', [CouponController::class, 'index'])->name('add-new');
+            Route::post('store', [CouponController::class, 'store'])->name('store');
+            Route::get('update/{id}', [CouponController::class, 'edit'])->name('update');
+            Route::post('update/{id}', [CouponController::class, 'update']);
+            Route::get('status/{id}/{status}', [CouponController::class, 'status'])->name('status');
+            Route::delete('delete/{id}', [CouponController::class, 'delete'])->name('delete');
+            Route::get('generate-coupon-code', [CouponController::class, 'generate_coupon_code'])->name('generate-coupon-code');
+            Route::get('coupon-details', [CouponController::class, 'coupon_details'])->name('coupon-details');
         });
 
         Route::group(['prefix' => 'delivery-man', 'as' => 'delivery-man.', 'middleware' => ['module:Manajemen Pengguna']], function(){

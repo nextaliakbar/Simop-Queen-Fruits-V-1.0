@@ -79,6 +79,7 @@ class ProductController extends Controller
             'image' => 'required',
             'category_id' => 'required',
             'price' => 'required|numeric',
+            'product_type' => 'required',
             'stock_type' => 'required|in:unlimited,fixed',
             'product_stock' => 'required_if:stock_type,fixed'
         ],[
@@ -86,6 +87,7 @@ class ProductController extends Controller
             'name.unique' => 'Nama produk sudah tersedia',
             'image.required' => 'Gambar produk tidak boleh kosong',
             'category_id.required' => 'Silahkan pilih salah satu kategori',
+            'product_type.required' => 'Silahkan pilih salah satu tipe produk',
             'product_stock.required_if' => 'Stok produk harus diisi minimal 1'
         ]);
          
@@ -205,6 +207,7 @@ class ProductController extends Controller
 
         $product->variations = json_encode($variations);
         $product->price = $request->price;
+        $product->local_product = $request->product_type;
         $product->image = Helpers::upload('product/', 'png', $request->file('image'));
         $product->available_time_starts = $request->available_time_starts;
         $product->available_time_ends = $request->available_time_ends;
@@ -275,12 +278,15 @@ class ProductController extends Controller
             'name' => 'required|unique:products,name,' . $id,
             'category_id' => 'required',
             'price' => 'required|numeric',
+            'product_type' => 'required',
             'stock_type' => 'required|in:unlimited,fixed',
             'product_stock' => 'required_if:stock_type,fixed'
         ], [
             'name.required' => 'Nama produk tidak boleh kosong',
             'name.unique' => 'Nama produk sudah tersedia',
-            'category_id.required' => 'Silahkan pilih salah satu kategori'
+            'category_id.required' => 'Silahkan pilih salah satu kategori',
+            'price.required' => 'Harga produk tidak boleh kosong',
+            'product_type.required' => 'Silahkan pilih salah satu tipe produk',
         ]);
 
         if(in_array(request('stock_type'), ['fixed'])) {
@@ -448,6 +454,7 @@ class ProductController extends Controller
         }
 
         $product->price = $request->price;
+        $product->local_product = $request->product_type;
         $product->image = $request->has('image') ? Helpers::update('product/', 'png', $request->file('image')) : $product->image;
         $product->available_time_starts = $request->available_time_starts;
         $product->available_time_ends = $request->available_time_ends;
