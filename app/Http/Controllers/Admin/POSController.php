@@ -144,6 +144,7 @@ class POSController extends Controller
         $order->delivery_address_id = $order_type == 'home_delivery' ? $customer_address->id : null;
         $order->delivery_date = Carbon::now()->format('Y-m-d');
         $order->delivery_time = Carbon::now()->format('H:i:s');
+        $order->preparation_time = $order_type == 'home_delivery' ? $this->branch->find(session()->get('branch_id') ?? 1)->preparation_time : 0;
         $order->order_note = null;
         $order->checked = 1;
 

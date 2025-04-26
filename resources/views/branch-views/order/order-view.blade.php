@@ -713,7 +713,7 @@
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
-                        @foreach(\App\Models\DeliveryMan::where(['is_active'=> 1])->whereIn('branch_id', [0, auth('branch')->id()])->get() as $deliveryMan)
+                        @foreach(\App\Models\DeliveryMan::where(['is_active'=> 1])->whereIn('branch_id', [1, auth('branch')->id()])->get() as $deliveryMan)
                             <li class="list-group-item d-flex flex-wrap align-items-center gap-3 justify-content-between">
                                 <div class="media align-items-center gap-2 flex-wrap">
                                     <div class="avatar">

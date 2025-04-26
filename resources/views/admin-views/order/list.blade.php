@@ -225,7 +225,7 @@
                             <tr>
                                 <th>No. </th>
                                 <th>ID Pesanan</th>
-                                <th>Tanggal Pengiriman</th>
+                                <th>Tanggal & Waktu Pengiriman</th>
                                 <th>Info Pelanggan</th>
                                 <th>Cabang</th>
                                 <th>Total Jumlah</th>
@@ -244,7 +244,7 @@
                                 </td>
                                 <td>
                                     <div>{{date('d M Y',strtotime($order['delivery_date']))}}</div>
-                                    <div>{{date('h:i A',strtotime($order['delivery_time']))}}</div>
+                                    <div>{{date('H:i',strtotime($order['delivery_time']))}}</div>
                                 </td>
                                 <td>
                                     @if($order->customer)

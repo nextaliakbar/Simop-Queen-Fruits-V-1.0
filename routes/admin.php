@@ -19,8 +19,8 @@ use App\Http\Controllers\Admin\DeliveryChargeController;
 use App\Http\Controllers\Admin\OfflinePaymentMethodController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\POSController;
+use App\Http\Controllers\Admin\PredictionController;
 use App\Http\Controllers\Admin\TimeScheduleController;
-use App\Models\DeliveryMan;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
@@ -40,6 +40,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
         Route::get('settings', [SystemController::class, 'settings'])->name('settings');
         Route::post('settings', [SystemController::class, 'settings_update']);
         Route::post('settings-password', [SystemController::class, 'settings_password_update'])->name('settings-password');
+
+        Route::get('predict-duration-time', [PredictionController::class, 'list'])->name('predict-duration-time');
 
         Route::group(['prefix' => 'pos', 'as' => 'pos.', 'middleware' => ['module:Manajemen Kasir']], function() {
             Route::get('orders', [POSController::class, 'list'])->name('orders');

@@ -38,6 +38,11 @@
                                             class="form-control" placeholder="Nama Belakang" required>
                                     </div>
                                     <div class="form-group">
+                                        <label class="input-label">Usia</label>
+                                        <input value="{{ old('age') }}" type="number" name="age"
+                                            class="form-control" placeholder="25" required>
+                                    </div>
+                                    <div class="form-group">
                                         <label class="input-label">No. Hp</label>
                                         <input value="{{ old('phone') }}" type="text" name="phone"
                                             class="form-control" placeholder="Contoh : 08123xxxxxx"

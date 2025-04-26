@@ -30,11 +30,17 @@
                                     </h5>
 
                                     <div class="">
-                                        Tanggal dan Waktu Pesanan: <i class="tio-date-range"></i>{{date('d M Y',strtotime($order['created_at']))}} {{ date(config('time_format'), strtotime($order['created_at'])) }}
+                                        Tanggal dan Waktu Pesanan: <i class="tio-date-range"></i>{{date('d M Y',strtotime($order['created_at']))}} {{ date('H:i', strtotime($order['created_at'])) }}
                                     </div>
                                 </div>
 
                                 <div>
+                                    @php
+                                        $predicted_time = App\Models\PredictionDurationTimeOrder::where('order_id', $order->id)->first();
+                                        $predicted_time = $predicted_time != null ? $predicted_time->prediction_duration_result . ' Menit' : 'Belum Tersedia';
+                                    @endphp
+                                    <h5>Prediksi Durasi Pengiriman : 
+                                        <span class="badge-soft-danger">{{$predicted_time}}</span></h5>
                                     <h5>Catatan Pesanan : {{$order['order_note']}}</h5>
                                 </div>
                             </div>
@@ -133,6 +139,21 @@
                                         Jenis Pesanan
                                         : <label class="badge-soft-info px-2 rounded">
                                             {{str_replace('_',' ',$order['order_type'] == 'pos' ? 'Kasir' : 'Pengiriman')}}
+                                        </label>
+                                    </div>
+
+                                    <div class="d-flex gap-3 justify-content-sm-end mb-3 text-capitalize">
+                                        @php(
+                                            $duration_time = $order['order_status'] == 'delivered'
+                                            ? ( $order['duration_time'] <= 60 
+                                            ? $order['duration_time'] . ' Menit' : ($order['duration_time'] % 2 == 1 
+                                            ? number_format($order['duration_time'] / 60, 1) 
+                                            : number_format($order['duration_time'] / 60)) . ' Jam') 
+                                            : 'Belum Tersedia'
+                                        )
+                                        Durasi Pengiriman
+                                        : <label class="badge-soft-success px-2 rounded">
+                                            {{str_replace('_',' ',$duration_time)}}
                                         </label>
                                     </div>
                                 </div>
@@ -449,7 +470,7 @@
                             @endif
                             @if($order->customer)
                                 <div>
-                                    <label class="font-weight-bold text-dark fz-14">Tanggal & Waktu Pesanan {{$order['delivery_date'] > \Carbon\Carbon::now()->format('Y-m-d')? 'Dijadwalkan' : ''}}</label>
+                                    <label class="font-weight-bold text-dark fz-14">Tanggal & Waktu Pengiriman {{$order['delivery_date'] > \Carbon\Carbon::now()->format('Y-m-d')? 'Dijadwalkan' : ''}}</label>
                                     <div class="d-flex gap-2 flex-wrap flex-xxl-nowrap">
                                         <input name="delivery_date" type="date" class="form-control delivery-date" value="{{$order['delivery_date'] ?? ''}}">
                                         <input name="delivery_time" type="time" class="form-control delivery-time" value="{{$order['delivery_time'] ?? ''}}">
@@ -465,7 +486,9 @@
                                 @endif
                             @endif
                             <div>
-                                @if($order['order_type'] != 'pos' && $order['order_type'] != 'take_away' && ($order['order_status'] != DELIVERED && $order['order_status'] != RETURNED && $order['order_status'] != CANCELED && $order['order_status'] != FAILED && $order['order_status'] != COMPLETED))
+                                @if($order['order_type'] != 'pos' && $order['order_type'] != 'take_away' && ($order['order_status'] != OUT_FOR_DELIVERY 
+                                && $order['order_status'] != DELIVERED && $order['order_status'] != RETURNED && $order['order_status'] != CANCELED 
+                                && $order['order_status'] != FAILED && $order['order_status'] != COMPLETED))
                                     <label class="font-weight-bold text-dark fz-14">Waktu Persiapan Pesanan</label>
                                     <div class="form-control justify-content-between">
                                         <span class="ml-2 ml-sm-3 ">
@@ -713,7 +736,7 @@
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
-                        @foreach($deliverymen as $deliveryMan)
+                        @foreach(\App\Models\DeliveryMan::where(['is_active'=> 1])->whereIn('branch_id', [1, $order->branch_id])->get() as $deliveryMan)
                             <li class="list-group-item d-flex flex-wrap align-items-center gap-3 justify-content-between">
                                 <div class="media align-items-center gap-2 flex-wrap">
                                     <div class="avatar">
@@ -845,7 +868,7 @@
             <div class="modal-dialog modal-sm" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title custom-text-size" id="exampleModalLabel">Butuh waktu untuk menyiapkan pesanan?</h5>
+                        <h5 class="modal-title custom-text-size" id="exampleModalLabel">Butuh tambahan waktu untuk menyiapkan pesanan?</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -1109,7 +1132,7 @@
 
             const expire_time = "{{ $order['remaining_time'] }}";
             var countDownDate = new Date(expire_time).getTime();
-            const time_zone = "{{ \App\CentralLogics\Helpers::get_business_settings('time_zone') ?? 'Asia/Jakarta' }}";
+            const time_zone = "{{config('app.timezone')}}";
 
             var x = setInterval(function() {
                 var now = new Date(new Date().toLocaleString("en-US", {timeZone: time_zone})).getTime();

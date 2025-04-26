@@ -4,6 +4,7 @@ namespace App\Http;
 
 use App\Http\Middleware\ActivationCheckMiddleware;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\AjaxMiddleware;
 use App\Http\Middleware\BranchMiddleware;
 use App\Http\Middleware\BranchStatusCheck;
 use App\Http\Middleware\ModulePermissionMiddleware;

@@ -39,6 +39,11 @@
                                             class="form-control" placeholder="Nama Belakang" required>
                                     </div>
                                     <div class="form-group">
+                                        <label class="input-label">Usia</label>
+                                        <input value="{{ $deliveryman['age'] }}" type="text" name="age"
+                                            class="form-control" placeholder="Nama Belakang" required>
+                                    </div>
+                                    <div class="form-group">
                                         <label class="input-label">No. Hp</label>
                                         <input value="{{ $deliveryman['phone'] }}" type="text" name="phone"
                                             class="form-control" placeholder="Contoh : 08123xxxxxx"

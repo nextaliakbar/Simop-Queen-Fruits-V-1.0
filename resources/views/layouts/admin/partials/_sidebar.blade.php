@@ -56,6 +56,19 @@
                        @endif
                         <!-- End Dashboards -->
 
+                        @if (App\CentralLogics\Helpers::module_permission_check('prediction_management'))
+                            <!-- Prediction -->
+                        <li class="navbar-vertical-aside-has-menu {{Request::is('admin/predict-duration-time') ?'':''}}">
+                            <a class="js-navbar-vertical-aside-menu-link nav-link"
+                               href="{{route('admin.predict-duration-time')}}" title="prediksi durasi pengiriman">
+                                <i class="tio-truck nav-icon"></i>
+                                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                    Prediksi
+                                </span>
+                            </a>
+                        </li>
+                        @endif
+
                         <!-- Pos Management -->
                         @if(\App\CentralLogics\Helpers::module_permission_check(MANAGEMENT_SECTION['pos_management']))
 

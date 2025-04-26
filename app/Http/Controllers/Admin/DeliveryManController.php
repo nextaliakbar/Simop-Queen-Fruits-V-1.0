@@ -101,10 +101,12 @@ class DeliveryManController extends Controller
         $request->validate([
             'f_name' => 'required',
             'email' => 'required|regex:/(.+)@(.+)\.(.+)/i|unique:delivery_men',
+            'age' => 'required',
             'phone' => 'required|unique:delivery_men',
             'confirm_password' => 'same:password'
         ], [
             'f_name.required' => 'Nama tidak boleh kosong',
+            'age.required' => 'Usia tidak boleh kosong',
             'email.required' => 'Email tidak boleh kosong',
             'email.unique' => 'Email sudah tersedia',
             'phone.required' => 'No hp tidak boleh kosong',
@@ -126,6 +128,7 @@ class DeliveryManController extends Controller
         $deliveryman = $this->deliveryman;
         $deliveryman->f_name = $request->f_name;
         $deliveryman->l_name = $request->l_name;
+        $deliveryman->age = $request->age;
         $deliveryman->email = $request->email;
         $deliveryman->phone = $request->phone;
         $deliveryman->identity_number = $request->identity_number;
@@ -210,9 +213,14 @@ class DeliveryManController extends Controller
     {
         $request->validate([
             'f_name' => 'required',
+            'age' => 'required',
+            'phone' => 'required',
             'email' => 'required|regex:/(.+)@(.+)\.(.+)/i',
         ], [
-            'f_name.required' => 'Nama tidak boleh kosong'
+            'f_name.required' => 'Nama tidak boleh kosong',
+            'age.required' => 'Usia tidak boleh kosong',
+            'phone.required' => 'No hp tidak boleh kosong',
+            'email.required' => 'Email tidak boleh kosong',
         ]);
 
         if($request->password) {
@@ -262,6 +270,7 @@ class DeliveryManController extends Controller
 
         $deliveryman->f_name = $request->f_name;
         $deliveryman->l_name = $request->l_name;
+        $deliveryman->age = $request->age;
         $deliveryman->email = $request->email;
         $deliveryman->phone = $request->phone;
         $deliveryman->identity_number = $request->identity_number;
