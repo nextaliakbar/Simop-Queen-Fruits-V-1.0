@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
@@ -61,9 +62,21 @@ class Product extends Model
         return $this->hasMany(ProductByBranch::class)->where(['branch_id' => auth('branch')->id()]);
     }
 
+    public function branch_product(): HasOne
+    {
+        return $this->hasOne(ProductByBranch::class)->where(['branch_id' => Config::get('branch_id')]);
+    }
+
     public function sub_branch_product(): HasOne
     {
         return $this->hasOne(ProductByBranch::class)->where(['branch_id' => auth('branch')->id()]);
+    }
+
+    public function scopeBranchProductAvailability($query)
+    {
+        return $query->whereHas('branch_product', function ($q) {
+            $q->where('is_available', 1);
+        });
     }
 
     public function getImageFullPathAttribute(): string

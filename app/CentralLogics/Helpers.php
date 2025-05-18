@@ -174,10 +174,30 @@ class Helpers
         return $delivery_charge;
     }
 
-    public static function product_data_formatting($data) {
-        $data['category_ids'] = gettype($data['category_ids']) != 'array' ? json_decode($data['category_ids']) : $data['category_ids'];
-        $data['choice_options'] = gettype($data['choice_options']) != 'array' ? json_decode(($data['choice_options'])) : $data['choice_options'];
-        $data['variations'] = gettype($data['variations']) != 'array' ? json_decode(($data['variations'])) : $data['variations'];
+    public static function product_data_formatting($data, $multi_data = false)
+    {
+        $storage = [];
+
+        if ($multi_data == true) {
+            foreach ($data as $item) {
+
+                $variations = [];
+                $item['category_ids'] = json_decode($item['category_ids']);
+                $item['attributes'] = json_decode($item['attributes']);
+                $item['choice_options'] = json_decode($item['choice_options']);
+
+                $item['variations'] = json_decode($item['variations'], true);
+                $storage[] = $item;
+            }
+            $data = $storage;
+        } else {
+
+            $variations = [];
+            $data['category_ids'] = gettype($data['category_ids']) != 'array' ? json_decode($data['category_ids']) : $data['category_ids'];
+            $data['attributes'] = gettype($data['attributes']) != 'array' ? json_decode($data['attributes']) : $data['attributes'];
+            $data['choice_options'] = gettype($data['choice_options']) != 'array' ? json_decode($data['choice_options']) : $data['choice_options'];
+            $data['variations'] = gettype($data['variations']) == 'array' ? $data['variations'] : json_decode($data['variations'], true);
+        }
 
         return $data;
     }

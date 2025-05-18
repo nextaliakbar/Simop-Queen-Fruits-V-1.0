@@ -6,13 +6,16 @@ use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\BusinessSetting;
+use App\Models\Order;
 use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class SystemController extends Controller
 {
     public function __construct(
+        private Order $order,
         private Admin $admin,
         private BusinessSetting $business_setting
     ) {}
@@ -70,5 +73,15 @@ class SystemController extends Controller
         Toastr::success('Password sukses diubah');
 
         return back();
+    }
+
+    public function store_data(): JsonResponse
+    {
+        $new_order = $this->order->where(['checked' => 0])->count();
+
+        return response()->json([
+            'success' => 1,
+            'data' => ['new_order' => $new_order]
+        ]);
     }
 }

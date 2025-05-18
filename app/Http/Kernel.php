@@ -5,6 +5,8 @@ namespace App\Http;
 use App\Http\Middleware\ActivationCheckMiddleware;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\AjaxMiddleware;
+use App\Http\Middleware\ApiActiveCustomer;
+use App\Http\Middleware\BranchAddrer;
 use App\Http\Middleware\BranchMiddleware;
 use App\Http\Middleware\BranchStatusCheck;
 use App\Http\Middleware\ModulePermissionMiddleware;
@@ -46,7 +48,8 @@ class Kernel extends HttpKernel
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            // \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            'throttle:60,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
@@ -73,6 +76,8 @@ class Kernel extends HttpKernel
         'branch' => BranchMiddleware::class,
         'branch_status' => BranchStatusCheck::class,
         'actch' => ActivationCheckMiddleware::class,
-        'module' => ModulePermissionMiddleware::class
+        'module' => ModulePermissionMiddleware::class,
+        'branch_adder' => BranchAddrer::class,
+        'is_active' => ApiActiveCustomer::class
     ];
 }

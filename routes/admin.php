@@ -40,6 +40,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
         Route::get('settings', [SystemController::class, 'settings'])->name('settings');
         Route::post('settings', [SystemController::class, 'settings_update']);
         Route::post('settings-password', [SystemController::class, 'settings_password_update'])->name('settings-password');
+        Route::get('/get-store-data', [SystemController::class, 'store_data'])->name('get-store-data');
 
         Route::get('predict-duration-time', [PredictionController::class, 'list'])->name('predict-duration-time');
 

@@ -15,6 +15,11 @@ class Banner extends Model
         'updated_at' => 'datetime'
     ];
 
+    public function scopeActive($query)
+    {
+        return $query->where('status', '=', 1);
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');

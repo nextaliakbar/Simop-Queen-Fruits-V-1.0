@@ -563,7 +563,7 @@
             console.log('manual')
             setInterval(function () {
                 $.get({
-                    url: '{{route('admin.get-restaurant-data')}}',
+                    url: '{{route('admin.get-store-data')}}',
                     dataType: 'json',
                     success: function (response) {
                         let data = response.data;

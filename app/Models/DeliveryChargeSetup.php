@@ -20,7 +20,7 @@ class DeliveryChargeSetup extends Model
 
     protected $casts = [
         'branch_id' => 'integer',
-        'delivery_charge_type' => 'float',
+        'delivery_charge_per_kilometer' => 'float',
         'minimum_delivery_charge' => 'float',
         'minimum_distance_for_free_delivery' => 'float',
         'fixed_delivery_charge' => 'float'

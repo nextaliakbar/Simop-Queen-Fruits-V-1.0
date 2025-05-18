@@ -21,3 +21,5 @@ const RETURNED = 'returned';
 const FAILED = 'failed';
 const CANCELED = 'canceled';
 const COMPLETED = 'completed';
+
+const CATEGORIES_WITH_CHILDES = 'categories_with_childes';

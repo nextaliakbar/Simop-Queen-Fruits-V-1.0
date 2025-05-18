@@ -34,6 +34,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->map_web_routes();
         $this->map_admin_routes();
         $this->map_branch_routes();
+        $this->map_api_v1_routes();
     }
 
     protected function map_web_routes()
@@ -57,5 +58,13 @@ class RouteServiceProvider extends ServiceProvider
         ->middleware('web')
         ->namespace($this->namespace)
         ->group(base_path('routes/branch.php'));
+    }
+
+    protected function map_api_v1_routes()
+    {
+        Route::prefix('api/v1')
+        ->middleware('api')
+        ->namespace($this->namespace)
+        ->group(base_path('routes/api/v1/api.php'));
     }
 }
