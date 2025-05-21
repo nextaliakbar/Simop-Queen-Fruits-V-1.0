@@ -30,8 +30,7 @@ class CopyStoragePublic extends Command
         $destination = public_path('storage');
 
         if(!File::exists($source)) {
-            $this->error('Source directory does not exist.');
-            return;
+            File::deleteDirectory($destination);
         }
 
         if(!File::exists($destination)) {
