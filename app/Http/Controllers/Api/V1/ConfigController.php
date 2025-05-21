@@ -20,10 +20,10 @@ class ConfigController extends Controller
     ) {}
 
      public function configuration(): JsonResponse
-    {        $playStoreConfig = Helpers::get_business_settings('play_store_config');
-        $appStoreConfig = Helpers::get_business_settings('app_store_config');
+{       $play_store_config = Helpers::get_business_settings('play_store_config');
+        $app_store_lonfig = Helpers::get_business_settings('app_store_config');
         $schedules = $this->time_schedule->select('day', 'opening_time', 'closing_time')->get();
-        $customerLogin = [
+        $customer_login = [
             'login_option' => [
                 'manual_login' => 1,
                 'otp_login' => 0,
@@ -53,22 +53,24 @@ class ConfigController extends Controller
             'minimum_order_value' => (float) Helpers::get_business_settings('minimum_order_value'),
             'branches' => $this->branch->all(['id', 'name', 'email', 'longitude', 'latitude', 'address', 'coverage', 'status', 'image', 'cover_image', 'preparation_time']),
             'play_store_config' => [
-                "status" => isset($playStoreConfig) && (boolean)$playStoreConfig['status'],
-                "link" => isset($playStoreConfig) ? $playStoreConfig['link'] : null,
-                "min_version" => isset($playStoreConfig) && array_key_exists('min_version', $appStoreConfig) ? $playStoreConfig['min_version'] : null
+                "status" => isset($play_store_config) && (boolean)$play_store_config['status'],
+                "link" => isset($play_store_config) ? $play_store_config['link'] : null,
+                "min_version" => isset($play_store_config) && array_key_exists('min_version', $app_store_lonfig) ? $play_store_config['min_version'] : null
             ],
-            'customer_login' => $customerLogin,
+            'customer_login' => $customer_login,
             'app_store_config' => [
-                "status" => isset($appStoreConfig) && (boolean)$appStoreConfig['status'],
-                "link" => isset($appStoreConfig) ? $appStoreConfig['link'] : null,
-                "min_version" => isset($appStoreConfig) && array_key_exists('min_version', $appStoreConfig) ? $appStoreConfig['min_version'] : null
+                "status" => isset($app_store_lonfig) && (boolean)$app_store_lonfig['status'],
+                "link" => isset($app_store_lonfig) ? $app_store_lonfig['link'] : null,
+                "min_version" => isset($app_store_lonfig) && array_key_exists('min_version', $app_store_lonfig) ? $app_store_lonfig['min_version'] : null
             ],
+            'schedule_order_slot_duration' => (int) (Helpers::get_business_settings('schedule_order_slot_duration') ?? 30),
             'store_schedule_time' => $schedules,
+            'offline_payment' => 'true',
             'google_map_status' => (integer) (Helpers::get_business_settings('google_map_status') ?? 0),
         ], 200);
     }
 
-    public function deliveryFree(Request $request): JsonResponse
+    public function delivery_free(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'branch_id' => 'required',

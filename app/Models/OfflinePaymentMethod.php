@@ -22,4 +22,9 @@ class OfflinePaymentMethod extends Model
         'method_informations' => 'array',
         'status' => 'integer'
     ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
 }

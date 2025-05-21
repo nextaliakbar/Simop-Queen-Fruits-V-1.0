@@ -43,6 +43,11 @@ class Order extends Model
         return $this->belongsTo(Branch::class, 'branch_id')->withCount('orders');
     }
 
+    public function customer_delivery_address(): BelongsTo
+    {
+        return $this->belongsTo(CustomerAddress::class, 'delivery_address_id');
+    }
+
     public function delivery_address(): BelongsTo
     {
         return $this->belongsTo(CustomerAddress::class, 'delivery_address_id');

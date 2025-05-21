@@ -78,4 +78,42 @@ class ProductLogic {
             'products' => $paginator->items()
         ];
     }
+
+    public static function get_recommended_products($limit, $offset, $name)
+    {
+        $limit = is_null($limit) ? null : $limit;
+        $offset = is_null($offset) ? 1 : $offset;
+        $key = explode(' ', $name);
+
+        $paginator = Product::active()
+            ->with(['branch_product', 'rating'])
+            ->where('is_recommended', 1)
+            ->whereHas('branch_product.branch', function ($query) {
+                $query->where('status', 1);
+            })
+            ->branchProductAvailability()
+            ->when($key, function ($query) use ($key) {
+                $query->where(function ($q) use ($key) {
+                    foreach ($key as $value) {
+                        $q->orWhere('name', 'like', "%{$value}%");
+                    }
+                    $q->orWhereHas('tags',function($query) use ($key){
+                        $query->where(function($q) use ($key){
+                            foreach ($key as $value) {
+                                $q->where('tag', 'like', "%{$value}%");
+                            };
+                        });
+                    });
+                });
+            })
+            ->latest()
+            ->paginate($limit, ['*'], 'page', $offset);
+
+            return [
+                'total_size' => $paginator->total(),
+                'limit' => $limit,
+                'offset' => $offset,
+                'products' => $paginator->items()
+            ];
+    }
 }
