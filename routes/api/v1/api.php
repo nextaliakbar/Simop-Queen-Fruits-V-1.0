@@ -54,6 +54,7 @@ Route::group(['namespane' => 'Api\V1'], function() {
 
         Route::group(['prefix' => 'order'], function() {
             Route::post('place', [OrderController::class, 'place_order'])->withoutMiddleware(['auth:api', 'is_active']);
+            Route::get('list', [OrderController::class, 'get_order_list'])->withoutMiddleware(['auth:api', 'is_active']);
         });
     });
 

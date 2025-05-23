@@ -6,6 +6,7 @@ use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\CustomerAddress;
+use App\Models\DMReview;
 use App\Models\OfflinePayment;
 use App\Models\Order;
 use App\Models\OrderDetail;
@@ -15,6 +16,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
@@ -196,5 +198,57 @@ class OrderController extends Controller
         } catch(\Exception $ex) {
             return response()->json([ $ex->getMessage()], 403);
         }
+    }
+
+    public function get_order_list(Request $request): JsonResponse
+    {
+        // $user_id = auth('api')->user()->id;
+        $user_id = 15;
+        $order_filter = $request->order_filter;
+
+        $orders = $this->order->with(['customer', 'delivery_man.rating'])
+        ->withCount('details')
+        ->withCount(['details as total_quantity' => function($query) {
+            $query->select(DB::raw('sum(quantity)'));
+        }])
+        ->where('user_id', $user_id)
+        ->when($order_filter == 'past_order', function($query) use ($order_filter) {
+            $query->whereIn('order_status', ['delivered', 'canceled', 'failed', 'returned']);
+        })
+        ->when($order_filter == 'running_order', function($query) use ($order_filter) {
+            $query->whereNotIn('order_status', ['delivered', 'canceled', 'failed', 'returned']);
+        })
+        ->orderBy('id', 'DESC')
+        ->paginate($request['limit'] , ['*'], 'page', $request['offset']);
+    
+        $orders->map(function($data) {
+            $data['deliveryman_review_count'] = DMReview::where(['delivery_man_id' => $data['delivery_man_id'], 'order_id' => $data['id']])->count();
+
+            $order_id = $data->id;
+            $order_details = $this->order_detail->where('order_id', $order_id)->first();
+            $product_id = $order_details?->product_id;
+
+            $data['is_product_available'] = $product_id ? $this->product->find($product_id) ? 1 : 0 : 0;
+            $data['details_count'] = (int) $data->details_count;
+
+            $product_images = $this->order_detail->where('order_id', $order_id)->pluck('product_id')
+            ->filter()->map(function($product_id) {
+                $product = $this->product->find($product_id);
+                return $product ? $product->image : null;
+            })->filter();
+
+            $data['product_images'] = $product_images->toArray();
+
+            return $data;
+        });
+
+        $order_array = [
+            'total_size' => $orders->total(),
+            'limit' => $request['limit'],
+            'offset' => $request['offset'],
+            'orders' => $orders->items(),
+        ];
+
+        return response()->json($order_array, 200);
     }
 }

@@ -195,7 +195,7 @@ class OrderController extends Controller
         return back();
     }
 
-    private function predicted_time(array $data): string
+    private function predicted_time(array $data): float
     {
         $features = [
             'Delivery_person_Age' => $data['delivery_person_age'],
@@ -206,13 +206,13 @@ class OrderController extends Controller
             'Type_of_vehicle_scooter' => 0,
         ];
 
-        $response = Http::post('http://localhost:5000/predict', $features);
+        $response = Http::post('https://prediksi-waktu-tiba-v10-production.up.railway.app/predict', $features);
 
         if($response->successful()) {
             $predicted_time = $response->json()['predict'];
             return $predicted_time;
         } else {
-            return '-';
+            return 0.0;
         }
     }
 
