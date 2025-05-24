@@ -16,10 +16,10 @@
             </div>
             <ul class="nav nav-tabs border-0 my-2">
                 <li class="nav-item">
-                    <a class="nav-link {{Request::is('admin/verify-offline-payment/pending')?'active':''}}"  href="{{route('admin.verify-offline-payment', ['pending'])}}">Pesanan Tertunda</a>
+                    <a class="nav-link {{Request::is('admin/verify-offline-payment/pending')?'active':''}}"  href="{{route('admin.verify-offline-payment', 'pending')}}">Pesanan Tertunda</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{Request::is('admin/verify-offline-payment/denied')?'active':''}}"  href="{{route('admin.verify-offline-payment', ['denied'])}}">Pesanan Tertolak</a>
+                    <a class="nav-link {{Request::is('admin/verify-offline-payment/denied')?'active':''}}"  href="{{route('admin.verify-offline-payment', 'denied')}}">Pesanan Tertolak</a>
                 </li>
             </ul>
         </div>
@@ -70,7 +70,7 @@
                                 </td>
                                 <td>
                                     <div>{{date('d M Y',strtotime($order['delivery_date']))}}</div>
-                                    <div>{{date('h:i A',strtotime($order['delivery_time']))}}</div>
+                                    <div>{{date('h:i',strtotime($order['delivery_time']))}}</div>
                                 </td>
                                 <td>
                                     @if($order->customer)
@@ -154,6 +154,7 @@
                 data: {
                     id: id
                 },
+                dataType: 'json',
                 beforeSend: function () {
                     $('#loading').show();
                 },
@@ -161,6 +162,14 @@
                     $('#loading').hide();
                     $('#quick-view').modal('show');
                     $('#quick-view-modal').empty().html(data.view);
+                    console.log(data.view)
+                },
+                error: function (xhr, status, error) {
+                    $('#loading').hide();
+                    toastr.error('Terjadi kesalahan', {
+                        CloseButton: true,
+                        ProgressBar: true
+                    });
                 }
             });
         }

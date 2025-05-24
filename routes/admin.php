@@ -80,9 +80,9 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function(){
             Route::get('verify-offline-payment/{order_id}/{status}', [OrderController::class, 'verify_offline_payment']);
         });
 
-        Route::get('verify-offline-payment/{status}', [OfflinePaymentMethodController::class, 'offline_payment_list'])->name('verify-offline-payment');
         Route::get('verify-offline-payment/quick-view-details', [OfflinePaymentMethodController::class, 'quick_view_details'])->name('offline-modal-view');
-
+        Route::get('verify-offline-payment/{status}', [OfflinePaymentMethodController::class, 'offline_payment_list'])->name('verify-offline-payment');
+        
         Route::group(['prefix' => 'category', 'as' => 'category.', 'middleware' => ['module:Manajemen Produk']], function(){
             Route::get('add', [CategoryController::class, 'index'])->name('add');
             Route::get('add-sub-category', [CategoryController::class, 'sub_index'])->name('add-sub-category');

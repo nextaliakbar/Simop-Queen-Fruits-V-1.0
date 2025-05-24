@@ -16,10 +16,13 @@ use Carbon\Carbon;
 use DateTime;
 use Exception;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -206,12 +209,61 @@ class OrderController extends Controller
             'Type_of_vehicle_scooter' => 0,
         ];
 
-        $response = Http::post('https://prediksi-waktu-tiba-v10-production.up.railway.app/predict', $features);
+        try {
+            $response = Http::timeout(30)->withOptions([
+                'verify' => false,
+                'allow_redirects' => true,
+                'connect_timeout' => 30,
+            ])
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'User-Agent' => 'Laravel'
+            ])
+            ->post('https://prediksi-waktu-tiba-v10-production.up.railway.app/predict', $features);
 
-        if($response->successful()) {
-            $predicted_time = $response->json()['predict'];
-            return $predicted_time;
-        } else {
+            Log::info('API Request', [
+               'url' => 'https://prediksi-waktu-tiba-v10-production.up.railway.app/predict',
+                'features' => $features,
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body' => $response->body(),
+                'successful' => $response->successful(),
+            ]);
+
+            if($response->successful()) {
+                $result = $response->json();
+                if(isset($result['predict'])) {
+                    return (float) $result['predict'];
+                } else {
+                    Log::error('API Response missing predict key', ['response' => $result]);
+                    return 0.0;
+                }
+            } else {
+                Log::error('API Request Failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'headers' => $response->headers()
+                ]);
+
+                return 0.0;
+            }
+        } catch(ConnectionException $ex) {
+            Log::error('API Connection Error', [
+                'message' => $ex->getMessage(),
+                'code' => $ex->getCode()
+            ]);
+            return 0.0;
+        } catch(RequestException $ex) {
+            Log::error('API Request Exception', [
+                'message' => $ex->getMessage(),
+                'response' => $ex->response ? $ex->response->body() : 'No response'
+            ]);
+            return 0.0;
+        } catch(Exception $ex) {
+            Log::error('API General Error', [
+                'message' => $ex->getMessage(),
+                'trace' => $ex->getTraceAsString()
+            ]);
             return 0.0;
         }
     }

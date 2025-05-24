@@ -177,7 +177,8 @@ class OfflinePaymentMethodController extends Controller
                     ->orWhere('payment_status', 'like', "%{$key}%");
                 }
             });
-        })->latest()->paginate(Helpers::get_pagination());
+        })
+        ->latest()->paginate(Helpers::get_pagination());
 
         return view('admin-views.order.offline-payment.list', compact('orders', 'search'));
     }
@@ -187,7 +188,7 @@ class OfflinePaymentMethodController extends Controller
         $order = $this->order->find($request->id);
 
         return response()->json([
-            'view' => view('admin-views.order.offline-payment.details-quick-view', compact('order'))
+            'view' => view('admin-views.order.offline-payment.details-quick-view', compact('order'))->render()
         ]);
     }
 }
