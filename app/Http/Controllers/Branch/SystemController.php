@@ -33,7 +33,7 @@ class SystemController extends Controller
 
         $branch = $this->branch->find(auth('branch')->id());
         $branch->name = $request->input('name');
-        $branch->image = $request->has('image') ? Helpers::update('branch/', $branch->image, 'png', $request->file('image')) : $branch->image;
+        $branch->image = $request->has('image') ? Helpers::update('branch/', $branch->image, $request->file('image')->getClientOriginalExtension(), $request->file('image')) : $branch->image;
         $branch->phone = $request->input('phone');
 
         $branch->save();

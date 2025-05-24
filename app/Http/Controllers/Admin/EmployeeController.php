@@ -57,7 +57,7 @@ class EmployeeController extends Controller
         $identity_image_names = [];
         if(!empty($request->file('identity_image'))) {
             foreach($request->identity_image as $img) {
-                $identity_image_names[] = Helpers::upload('admin/', 'png', $img);
+                $identity_image_names[] = Helpers::upload('admin/', $img->getClientOriginalExtension(), $img);
             }
 
             $identity_image = json_encode($identity_image_names);
@@ -75,7 +75,7 @@ class EmployeeController extends Controller
         $admins->identity_image = $identity_image;
         $admins->password = bcrypt($request->password);
         $admins->status = 1;
-        $admins->image = Helpers::upload('admin/', 'png', $request->file('image'));
+        $admins->image = Helpers::upload('admin/', $request->file('image')->getClientOriginalExtension(), $request->file('image'));
         $admins->created_at = now();
         $admins->updated_at = now();
         $admins->save();
@@ -159,14 +159,14 @@ class EmployeeController extends Controller
         }
 
         if($request->has('image')) {
-            $employee['image'] = Helpers::update('admin/' . $employee['image'], 'png', $request->file('image'));
+            $employee['image'] = Helpers::update('admin/' . $employee['image'], $request->file('image')->getClientOriginalExtension(), $request->file('image'));
         }
 
         $identity_image_names = [];
 
         if(!empty($request->file('identity_image'))) {
             foreach($request->identity_image as $img) {
-                $identity_image_names[] = Helpers::upload('admin/', 'png', $img);
+                $identity_image_names[] = Helpers::upload('admin/', $img->getClientOriginalExtension(), $img);
             }
 
             $identity_image = json_encode($identity_image_names);

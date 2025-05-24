@@ -59,7 +59,7 @@ class BannerController extends Controller
             $banner->category_id = $request->category_id;
         }
 
-        $banner->image = Helpers::upload('banner/', 'png', $request->file('image'));
+        $banner->image = Helpers::upload('banner/', $request->file('image')->getClientOriginalExtension(), $request->file('image'));
         $banner->save();
 
         Toastr::success('Banner berhasil ditambahkan');
@@ -105,7 +105,7 @@ class BannerController extends Controller
             $banner->product_id = null;
         }
 
-        $banner->image = $request->has('image') ? Helpers::update('banner/', $banner->image, 'png', $request->file('image')) : $banner->image;
+        $banner->image = $request->has('image') ? Helpers::update('banner/', $banner->image, $request->file('image')->getClientOriginalExtension(), $request->file('image')) : $banner->image;
         $banner->save();
 
         Toastr::success('Banner berhasil diperbarui');

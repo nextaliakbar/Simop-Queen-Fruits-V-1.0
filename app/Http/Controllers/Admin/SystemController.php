@@ -48,7 +48,7 @@ class SystemController extends Controller
             $admin->l_name = $request->l_name;
             $admin->email = $request->email;
             $admin->phone = $request->phone;
-            $admin->image = $request->has('image') ? Helpers::update('admin/', $admin->image, 'png', $request->file('image')) : $admin->image;
+            $admin->image = $request->has('image') ? Helpers::update('admin/', $admin->image, $request->file('image')->getClientOriginalExtension(), $request->file('image')) : $admin->image;
             $admin->save();
 
             Toastr::success('Informasi profil berhasil diperbarui');

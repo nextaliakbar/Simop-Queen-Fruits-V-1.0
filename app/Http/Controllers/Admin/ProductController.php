@@ -208,7 +208,7 @@ class ProductController extends Controller
         $product->variations = json_encode($variations);
         $product->price = $request->price;
         $product->local_product = $request->product_type;
-        $product->image = Helpers::upload('product/', 'png', $request->file('image'));
+        $product->image = Helpers::upload('product/', $request->file('image')->getClientOriginalExtension(), $request->file('image'));
         $product->available_time_starts = $request->available_time_starts;
         $product->available_time_ends = $request->available_time_ends;
         $product->tax_type = !is_null($request['tax_type']) ? ($request['tax_type'] != 'nothing' ? $request['tax_type'] : null) : null;
@@ -455,7 +455,7 @@ class ProductController extends Controller
 
         $product->price = $request->price;
         $product->local_product = $request->product_type;
-        $product->image = $request->has('image') ? Helpers::update('product/', 'png', $request->file('image')) : $product->image;
+        $product->image = $request->has('image') ? Helpers::update('product/', $product->image, $request->file('image')->getClientOriginalExtension(),$request->file('image')) : $product->image;
         $product->available_time_starts = $request->available_time_starts;
         $product->available_time_ends = $request->available_time_ends;
         $product->tax_type = $request['tax_type'] != 'nothing' ? $request['tax_type'] : null;

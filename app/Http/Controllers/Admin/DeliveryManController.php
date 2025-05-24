@@ -117,7 +117,7 @@ class DeliveryManController extends Controller
 
         if(!empty($request->file('identity_image'))) {
             foreach($request->identity_image as $img) {
-                $identity_image_names[] = Helpers::upload('delivery-man/', 'png', $img);
+                $identity_image_names[] = Helpers::upload('delivery-man/', $request->file('identity_image')->getClientOriginalExtension(), $img);
             }
 
             $identity_image = json_encode($identity_image_names);
@@ -135,7 +135,7 @@ class DeliveryManController extends Controller
         $deliveryman->identity_type = $request->identity_type;
         $deliveryman->branch_id = $request->branch_id;
         $deliveryman->identity_image = $identity_image;
-        $deliveryman->image = Helpers::upload('delivery-man/', 'png', $request->file('image'));
+        $deliveryman->image = Helpers::upload('delivery-man/', $request->file('image')->getClientOriginalExtension(), $request->file('image'));
         $deliveryman->password = bcrypt($request->password);
         $deliveryman->application_status = 'approved';
         $deliveryman->save();
@@ -260,7 +260,7 @@ class DeliveryManController extends Controller
 
             $img_keeper = [];
             foreach($request->identity_image as $img) {
-                $img_keeper[] = Helpers::upload('delivery-man/', 'png', $img);
+                $img_keeper[] = Helpers::upload('delivery-man/', $img->getClientOriginalExtension(), $img);
             }
             
             $identity_image = json_encode($img_keeper);
@@ -277,7 +277,7 @@ class DeliveryManController extends Controller
         $deliveryman->identity_type = $request->identity_type;
         $deliveryman->branch_id = $request->branch_id;
         $deliveryman->identity_image = $identity_image;
-        $deliveryman->image = $request->has('image') ? Helpers::update('delivery-man/', $deliveryman->image, 'png', $request->file('image')) : $deliveryman->image;
+        $deliveryman->image = $request->has('image') ? Helpers::update('delivery-man/', $deliveryman->image, $request->file('image')->getClientOriginalExtension(), $request->file('image')) : $deliveryman->image;
         $deliveryman->password = strlen($request->passworrd) > 1 ? bcrypt($request->password) : $deliveryman['password'];
         $deliveryman->save();
     

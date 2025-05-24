@@ -77,13 +77,13 @@ class CategoryController extends Controller
         }
 
         if(!empty($request->file('image'))) {
-            $image_name = Helpers::upload('category/', 'png', $request->file('image'));
+            $image_name = Helpers::upload('category/', $request->file('image')->getClientOriginalExtension(), $request->file('image'));
         } else {
             $image_name = 'def.png';
         }
 
         if(!empty($request->file('banner_image'))) {
-            $banner_image_name = Helpers::upload('category/banner/', 'png', $request->file('banner_image'));
+            $banner_image_name = Helpers::upload('category/banner/', $request->file('banner_image')->getClientOriginalExtension(), $request->file('banner_image'));
         } else {
             $banner_image_name = 'def.png';
         }
@@ -119,8 +119,8 @@ class CategoryController extends Controller
 
         $category = $this->category->find($id);
         $category->name = $request->name;
-        $category->image = $request->has('image') ? Helpers::update('category/', $category->image, 'png', $request->file('image')) : $category->image;
-        $category->banner_image = $request->has('banner_image')? Helpers::update('category/banner/', $category->banner_image, 'png', $request->file('banner_image')) : $category->banner_image;
+        $category->image = $request->has('image') ? Helpers::update('category/', $category->image, $request->file('image')->getClientOriginalExtension(), $request->file('image')) : $category->image;
+        $category->banner_image = $request->has('banner_image')? Helpers::update('category/banner/', $category->banner_image, $request->file('banner_image')->getClientOriginalExtension(), $request->file('banner_image')) : $category->banner_image;
         $category->save();
         $message = $category->parent_id == 0 ? 'Kategori produk berhasil diperbarui' : 'Sub kategori produk berhasil diperbarui';
         Toastr::success($message);

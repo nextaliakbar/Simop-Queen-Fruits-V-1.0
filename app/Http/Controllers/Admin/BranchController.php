@@ -43,13 +43,13 @@ class BranchController extends Controller
         ]);
 
         if($request->has('image')) {
-            $image_name = Helpers::upload('branch/', 'png', $request->file('image'));
+            $image_name = Helpers::upload('branch/', $request->file('image')->getClientOriginalExtension(), $request->file('image'));
         } else {
             $image_name = 'def.png';
         }
 
         if($request->has('cover_image')) {
-            $cover_image_name = Helpers::upload('branch/', 'png', $request->file('cover_image'));
+            $cover_image_name = Helpers::upload('branch/', $request->file('cover_image')->getClientOriginalExtension(), $request->file('cover_image'));
         } else {
             $cover_image_name = 'def.png';
         }
@@ -132,8 +132,8 @@ class BranchController extends Controller
         $branch->latitude = $request->latitude ? $request->latitude : $branch->latitude;
         $branch->coverage = $request->coverage ? $request->coverage : $branch->coverage;
         $branch->address = $request->address;
-        $branch->image = $request->has('image') ? Helpers::update('branch/', $branch->image, 'png', $request->file('image')) : $branch->image;
-        $branch->cover_image = $request->has('cover_image') ? Helpers::update('branch/', $branch->cover_image, 'png', $request->file('cover_image')) : $branch->cover_image;
+        $branch->image = $request->has('image') ? Helpers::update('branch/', $branch->image, $request->file('image')->getClientOriginalExtension(), $request->file('image')) : $branch->image;
+        $branch->cover_image = $request->has('cover_image') ? Helpers::update('branch/', $branch->cover_image, $request->file('cover_image')->getClientOriginalExtension(), $request->file('cover_image')) : $branch->cover_image;
 
         if($request['password'] != null) {
             $branch->password = bcrypt($request->password);
