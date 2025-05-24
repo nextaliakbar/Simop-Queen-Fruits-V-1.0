@@ -5,6 +5,7 @@ namespace App\CentralLogics;
 use App\Models\Branch;
 use App\Models\BusinessSetting;
 use App\Models\DMReview;
+use App\Models\Product;
 use App\Models\Review;
 use Carbon\Carbon;
 use GuzzleHttp\Promise\PromiseInterface;
@@ -372,5 +373,59 @@ class Helpers
         }
 
         return $result;
+    }
+
+    public static function order_data_formatting($data, $multi_data = false)
+    {
+        $storage = [];
+        if ($multi_data) {
+            foreach ($data as $item) {
+                $storage[] = $item;
+            }
+            $data = $storage;
+        } else {
+
+            foreach ($data->details as $detail) {
+                $detail->product_details = gettype($detail->product_details) != 'array' ? json_decode($detail->product_details) : $detail->product_details;
+                $detail->product_details->variations = gettype($detail->product_details->variations) != 'array' ? json_decode($detail->product_details->variations) : $detail->product_details->variations;
+                $detail->product_details->category_ids = gettype($detail->product_details->category_ids) != 'array' ? json_decode($detail->product_details->category_ids) : $detail->product_details->category_ids;
+                $detail->product_details->choice_options = gettype($detail->product_details->choice_options) != 'array' ? json_decode($detail->product_details->choice_options) : $detail->product_details->choice_options;
+
+                $detail->variation = gettype($detail->variation) != 'array' ? json_decode($detail->variation) : $detail->variation;
+                $detail->variant = gettype($detail->variant) != 'array' ? json_decode($detail->variant) : $detail->variant;
+            }
+        }
+
+        return $data;
+    }
+
+    public static function order_details_formatter($details) 
+    {
+        if ($details->count() > 0) {
+            foreach ($details as $detail) {
+                $detail['product_details'] = gettype($detail['product_details']) != 'array' ? (array) json_decode($detail['product_details'], true) : (array) $detail['product_details'];
+                $detail['variation'] = gettype($detail['variation']) != 'array' ? (array) json_decode($detail['variation'], true) : (array) $detail['variation'];
+                $detail['variant'] = gettype($detail['variant']) != 'array' ? (array) json_decode($detail['variant'], true) : (array) $detail['variant'];
+
+                if(!isset($detail['reviews_count'])) {
+                    $detail['review_count'] = Review::where(['order_id' => $detail['order_id'], 'product_id' => $detail['product_id']])->count();
+                }
+
+                $detail['product_details'] = Helpers::product_formatter($detail['product_details']);
+
+                $product_availability = Product::where('id', $detail['product_id'])->first();
+                $detail['is_product_available'] = isset($product_availability) ? 1 : 0;
+            }
+        }
+
+        return $details;
+    }
+
+    public static function product_formatter($product)
+    {
+        $product['variations'] = gettype($product['variations']) != 'array' ? (array)json_decode($product['variations'], true) : (array)$product['variations'];
+        $product['category_ids'] = gettype($product['category_ids']) != 'array' ? (array)json_decode($product['category_ids'], true) : (array)$product['category_ids'];
+        $product['choice_options'] = gettype($product['choice_options']) != 'array' ? (array)json_decode($product['choice_options'], true) : (array)$product['choice_options'];
+        return $product;
     }
 }

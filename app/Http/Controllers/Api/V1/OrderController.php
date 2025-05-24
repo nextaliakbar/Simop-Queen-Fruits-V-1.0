@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\CentralLogics\Helpers;
+use App\CentralLogics\OrderLogic;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\CustomerAddress;
@@ -250,5 +251,157 @@ class OrderController extends Controller
         ];
 
         return response()->json($order_array, 200);
+    }
+
+    public function track_order_without_phone(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required'
+        ]);
+        
+        if($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        // $user_id = auth('api')->user()->id;
+        $user_id = 15;
+
+        $order = $this->order->where(['id' => $request['order_id'], 'user_id' => $user_id]);
+
+        if(!isset($order)) {
+            return response()->json([
+               'errors' => [
+                'code' => 'order',
+                'message' => 'Pesanan tidak ditemukan'
+               ] 
+            ], 404);
+        }
+
+        return response()->json(OrderLogic::track_order($request['order_id']), 200);
+    }
+
+    public function track_order_with_phone(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required',
+            'phone' => 'required'
+        ]);
+
+        if($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $order_id = $request['order_id'];
+        $phone = $request['phone'];
+
+        $order = $this->order->wit(['customer', 'delivery_address'])
+        ->where('id', $order_id)
+        ->where(function($query) use ($phone) {
+            $query->where(function($sub_query) use ($phone) {
+                $sub_query->whereHas('customer', function($customer_sub_query) use ($phone) {
+                    $customer_sub_query->where('phone', $phone);
+                });
+            });
+        })
+        ->orWhere(function($sub_query) use ($phone) {
+            $sub_query->whereHas('delivery_address', function($address_sub_query) use ($phone) {
+                $address_sub_query->where('contact_person_number', $phone);
+            });
+        })->first();
+
+        if(!isset($order)) {
+            return response()->json([
+               'errors' => [
+                'code' => 'order',
+                'message' => 'Pesanan tidak ditemukan'
+               ] 
+            ]);
+        }
+
+        return response()->json(OrderLogic::track_order($request['order_id']), 200);
+    }
+
+    public function order_details_without_phone(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        // $user_id = auth('api')->user()->id;
+        $user_id = 15;
+
+        $details = $this->order_detail->with(['order',
+            'order.delivery_man' => function ($query) {
+                $query->select('id', 'f_name', 'l_name', 'phone', 'email', 'image', 'branch_id', 'is_active');
+            },
+            'order.delivery_man.rating', 'order.delivery_address', 'order.offline_payment', 'order.deliveryman_review'])
+            ->withCount(['reviews'])
+            ->where(['order_id' => $request['order_id']])
+            ->whereHas('order', function ($q) use ($user_id){
+                $q->where('user_id', $user_id);
+            })
+            ->get();
+
+        if ($details->count() < 1) {
+            return response()->json([
+                'errors' => [
+                    ['code' => 'order', 'message' => 'Pesanan tidak ditemukan']
+                ]
+            ], 404);
+        }
+
+        $details = Helpers::order_details_formatter($details);
+        return response()->json($details, 200);
+    }
+
+    public function order_details_with_phone(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required',
+            'phone' => 'required'
+        ]);
+
+        if($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $phone = $request['phone'];
+
+        $details = $this->order_detail->with(['order', 'order.customer', 'order.delivery_address'])
+            ->withCount(['reviews'])
+            ->where(['order_id' => $request['order_id']])
+            ->where(function ($query) use ($phone) {
+                $query->where(function ($subQuery) use ($phone) {
+                    $subQuery->whereHas('order', function ($orderSubQuery) use ($phone){
+                        $orderSubQuery->whereHas('customer', function ($customerSubQuery) use ($phone) {
+                                $customerSubQuery->where('phone', $phone);
+                            });
+                    });
+                })
+                    ->orWhere(function ($subQuery) use ($phone) {
+                        $subQuery->whereHas('order', function ($orderSubQuery) use ($phone){
+                            $orderSubQuery->whereHas('delivery_address', function ($addressSubQuery) use ($phone) {
+                                    $addressSubQuery->where('contact_person_number', $phone);
+                                });
+                        });
+
+                    });
+            })
+            ->get();
+
+        if ($details->count() < 1) {
+            return response()->json([
+                'errors' => [
+                    ['code' => 'order', 'message' => 'Pesanan tidak ditemukan']
+                ]
+            ], 404);
+        }
+
+        $details = Helpers::order_details_formatter($details);
+        return response()->json($details, 200);
     }
 }

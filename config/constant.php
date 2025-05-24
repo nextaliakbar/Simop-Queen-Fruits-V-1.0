@@ -1,6 +1,5 @@
 <?php
 
-/**
 const CACHE_BUSINESS_SETTINGS_TABLE = 'cache_business_settings_table';
 
 const MANAGEMENT_SECTION = [
@@ -24,8 +23,9 @@ const CANCELED = 'canceled';
 const COMPLETED = 'completed';
 
 const CATEGORIES_WITH_CHILDES = 'categories_with_childes';
-*/
 
+
+/**
 if (!defined('CACHE_BUSINESS_SETTINGS_TABLE')) {
     define('CACHE_BUSINESS_SETTINGS_TABLE', 'cache_business_settings_table');
 }
@@ -52,3 +52,4 @@ if (!defined('FAILED')) define('FAILED', 'failed');
 if (!defined('CANCELED')) define('CANCELED', 'canceled');
 if (!defined('COMPLETED')) define('COMPLETED', 'completed');
 if (!defined('CATEGORIES_WITH_CHILDES')) define('CATEGORIES_WITH_CHILDES', 'categories_with_childes');
+*/

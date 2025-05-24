@@ -77,4 +77,9 @@ class Order extends Model
     {
         return $this->hasOne(OfflinePayment::class, 'order_id');
     }
+
+    public function deliveryman_review()
+    {
+        return $this->hasOne(DMReview::class, 'order_id');
+    }
 }

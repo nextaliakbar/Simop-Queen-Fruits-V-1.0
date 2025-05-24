@@ -55,6 +55,10 @@ Route::group(['namespane' => 'Api\V1'], function() {
         Route::group(['prefix' => 'order'], function() {
             Route::post('place', [OrderController::class, 'place_order'])->withoutMiddleware(['auth:api', 'is_active']);
             Route::get('list', [OrderController::class, 'get_order_list'])->withoutMiddleware(['auth:api', 'is_active']);
+            Route::post('track-with-phone', [OrderController::class, 'track_order_with_phone'])->withoutMiddleware(['auth:api', 'is_active']);
+            Route::get('track-without-phone', [OrderController::class, 'track_order_without_phone'])->withoutMiddleware(['auth:api', 'is_active']);
+            Route::post('details-with-phone', [OrderController::class, 'order_details_with_phone'])->withoutMiddleware(['auth:api', 'is_active']);
+            Route::get('details-without-phone', [OrderController::class, 'order_details_without_phone'])->withoutMiddleware(['auth:api', 'is_active']);
         });
     });
 

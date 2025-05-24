@@ -25,6 +25,11 @@ class DeliveryMan extends Authenticatable
         ->groupBy('delivery_man_id');
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(DMReview::class, 'delivery_man_id');
+    }
+
     public function getImageFullPathAttribute():string
     {
         $image = $this->image ?? null;
