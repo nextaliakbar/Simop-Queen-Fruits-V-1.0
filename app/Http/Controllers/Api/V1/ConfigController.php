@@ -19,7 +19,7 @@ class ConfigController extends Controller
         private BusinessSetting $business_setting
     ) {}
 
-     public function configuration(): JsonResponse
+    public function configuration(): JsonResponse
 {       $play_store_config = Helpers::get_business_settings('play_store_config');
         $app_store_lonfig = Helpers::get_business_settings('app_store_config');
         $schedules = $this->time_schedule->select('day', 'opening_time', 'closing_time')->get();
@@ -37,15 +37,15 @@ class ConfigController extends Controller
             'store_phone' => Helpers::get_business_settings('phone'),
             'store_email' => Helpers::get_business_settings('email_address'),
             'base_urls' => [
-                'product_image_url' => asset('storage/product'),
-                'customer_image_url' => asset('storage/profile'),
-                'banner_image_url' => asset('storage/banner'),
-                'category_image_url' => asset('storage/category'),
-                'category_banner_image_url' => asset('storage/category/banner'),
-                'review_image_url' => asset('storage/review'),
-                'notification_image_url' => asset('storage/notification'),
-                'store_image_url' => asset('storage/store'),
-                'branch_image_url' => asset('storage/branch'),
+                'product_image_url' => 'product',
+                'customer_image_url' => 'profile',
+                'banner_image_url' => 'banner',
+                'category_image_url' => 'category',
+                'category_banner_image_url' => 'category-banner',
+                'review_image_url' => 'review',
+                'notification_image_url' => 'notification',
+                'store_image_url' => 'store',
+                'branch_image_url' => 'branch',
             ],
             'self_pickup' => (boolean) Helpers::get_business_settings('self_pickup') ?? 1,
             'delivery' => (boolean) Helpers::get_business_settings('delivery') ?? 1,
