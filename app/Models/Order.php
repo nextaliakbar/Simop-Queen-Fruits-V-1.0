@@ -82,4 +82,9 @@ class Order extends Model
     {
         return $this->hasOne(DMReview::class, 'order_id');
     }
+
+    public function prediction_duration_time_order(): HasOne
+    {
+        return $this->hasOne(PredictionDurationTimeOrder::class, 'order_id','id' );
+    }
 }

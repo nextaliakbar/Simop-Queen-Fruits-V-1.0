@@ -78,7 +78,7 @@ class OrderController extends Controller
             $order_id = 100000 + $this->order->all()->count() + 1;
             $order = [
                 'id' => $order_id,
-                'user_id' => '15',
+                'user_id' => $user_id,
                 'order_amount' => $request['order_amount'],
                 'payment_status' => $payment_status,
                 'order_status' => $order_status,
@@ -203,11 +203,11 @@ class OrderController extends Controller
 
     public function get_order_list(Request $request): JsonResponse
     {
-        // $user_id = auth('api')->user()->id;
-        $user_id = 15;
+        $user_id = auth('api')->user()->id;
+        // $user_id = 15;
         $order_filter = $request->order_filter;
 
-        $orders = $this->order->with(['customer', 'delivery_man.rating'])
+        $orders = $this->order->with(['customer', 'delivery_man.rating', 'prediction_duration_time_order'])
         ->withCount('details')
         ->withCount(['details as total_quantity' => function($query) {
             $query->select(DB::raw('sum(quantity)'));
@@ -263,8 +263,8 @@ class OrderController extends Controller
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        // $user_id = auth('api')->user()->id;
-        $user_id = 15;
+        $user_id = auth('api')->user()->id;
+        // $user_id = 15;
 
         $order = $this->order->where(['id' => $request['order_id'], 'user_id' => $user_id]);
 
@@ -331,14 +331,15 @@ class OrderController extends Controller
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        // $user_id = auth('api')->user()->id;
-        $user_id = 15;
+        $user_id = auth('api')->user()->id;
+        // $user_id = 15;
 
         $details = $this->order_detail->with(['order',
             'order.delivery_man' => function ($query) {
                 $query->select('id', 'f_name', 'l_name', 'phone', 'email', 'image', 'branch_id', 'is_active');
             },
-            'order.delivery_man.rating', 'order.delivery_address', 'order.offline_payment', 'order.deliveryman_review'])
+            'order.delivery_man.rating', 'order.delivery_address', 'order.offline_payment', 'order.deliveryman_review',
+            'order.prediction_duration_time_order'])
             ->withCount(['reviews'])
             ->where(['order_id' => $request['order_id']])
             ->whereHas('order', function ($q) use ($user_id){

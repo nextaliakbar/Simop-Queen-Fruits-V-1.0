@@ -10,7 +10,7 @@ use App\Models\Product;
 class OrderLogic {
     public static function track_order($order_id)
     {
-        $order = Order::with(['details', 'delivery_address', 'delivery_man.rating', 'branch', 'offline_payment'])
+        $order = Order::with(['details', 'delivery_address', 'delivery_man.rating', 'branch', 'offline_payment', 'prediction_duration_time_order'])
         ->where('id',  $order_id)->first();
 
         $order_details = OrderDetail::where('order_id', $order->id)->first();

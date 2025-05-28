@@ -24,4 +24,9 @@ class PredictionDurationTimeOrder extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'id');
+    }
 }
