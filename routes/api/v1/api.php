@@ -49,6 +49,8 @@ Route::group(['namespane' => 'Api\V1'], function() {
         Route::group(['prefix' => 'address'], function(){
             Route::get('list', [CustomerController::class, 'address_list'])->withoutMiddleware(['auth:api', 'is_active']);
             Route::post('add', [CustomerController::class, 'add_address'])->withoutMiddleware(['auth:api', 'is_active']);
+            Route::put('update/{id}', [CustomerController::class, 'update_address'])->withoutMiddleware(['auth:api', 'is_active']);
+            Route::delete('delete', [CustomerController::class, 'delete_address'])->withoutMiddleware(['auth:api', 'is_active']);
         });
         Route::get('last-ordered-address', [CustomerController::class, 'last_ordered_address']);
 

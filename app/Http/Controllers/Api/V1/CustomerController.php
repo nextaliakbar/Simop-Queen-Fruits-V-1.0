@@ -78,6 +78,74 @@ class CustomerController extends Controller
         ], 200);
     }
 
+    public function update_address(Request $request, $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'contact_person_name' => 'required',
+            'address_type' => 'required',
+            'contact_person_number' => 'required',
+            'address' => 'required'
+        ]);
+
+        if($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $user_id = auth('api')->user()->id;
+
+        $address = $this->customer_address->find($id);
+
+        if(!$address || $address->user_id != $user_id) {
+            return response()->json(['message' => 'Alamat tidak tersedia'], 404);
+        }
+
+        if($request->has('is_default')) {
+            $this->customer_address
+                ->where(['user_id' => $user_id, 'is_default' => 1])
+                ->update(['is_default' => 0]);
+        }
+
+        $address->user_id = $user_id;
+        $address->contact_person_name = $request->contact_person_name;
+        $address->contact_person_number = $request->contact_person_number;
+        $address->address_type = $request->address_type;
+        $address->address = $request->address;
+        $address->latitude = $request->latitude;
+        $address->longitude = $request->longitude;
+        $address->is_default = $request->has('is_default') ? 1 : 0;
+        $address->updated_at = now();
+        $address->save();
+
+        return response()->json([
+            'message' => 'Alamat berhasil diperbarui'
+        ], 200);
+    }
+
+    public function delete_address(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'address_id' => 'required'
+        ]);
+
+        if($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $user_id = auth('api')->user()->id;
+
+        $address = $this->customer_address->find($request['address_id']);
+
+        if(!$address || $address->user_id != $user_id) {
+            return response()->json(['message' => 'Alamat tidak tersedia'], 404);
+        }
+
+        $address->delete();
+
+        return response()->json([
+            'message' => 'Alamat berhasil dihapus'
+        ], 200);
+    }
+
     public function last_ordered_address(): JsonResponse
     {
         if(!auth('api')->user()) {
