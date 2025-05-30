@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
@@ -86,5 +87,84 @@ class Order extends Model
     public function prediction_duration_time_order(): HasOne
     {
         return $this->hasOne(PredictionDurationTimeOrder::class, 'order_id','id' );
+    }
+
+    public function scopeByMonthYear($query, $month, $year)
+    {
+        return $query->whereMonth('created_at', $month)
+                     ->whereYear('created_at', $year);
+    }
+
+    public static function get_expenses_chart($user_id, $branch_id, $month, $year)
+    {
+        $isFebruary = $month == 2;
+    
+    if ($isFebruary) {
+        // Februari: 4 periode (per 7 hari)
+        return self::selectRaw("
+            period_calc as period_number,
+            CASE 
+                WHEN period_calc = 1 THEN 'Periode 1 (1-7)'
+                WHEN period_calc = 2 THEN 'Periode 2 (8-14)'
+                WHEN period_calc = 3 THEN 'Periode 3 (15-21)'
+                ELSE 'Periode 4 (22-28/29)'
+            END as period_label,
+            SUM(order_amount) as total_amount,
+            COUNT(*) as total_orders,
+            AVG(order_amount) as avg_amount
+        ")
+        ->fromSub(function($query) use ($user_id, $branch_id, $month, $year) {
+            $query->selectRaw("
+                *,
+                CASE 
+                    WHEN DAY(created_at) BETWEEN 1 AND 7 THEN 1
+                    WHEN DAY(created_at) BETWEEN 8 AND 14 THEN 2
+                    WHEN DAY(created_at) BETWEEN 15 AND 21 THEN 3
+                    ELSE 4
+                END as period_calc
+            ")
+            ->from('orders')
+            ->where('user_id', $user_id)
+            ->where('branch_id', $branch_id)
+            ->where('order_status', 'delivered')
+            ->whereRaw('MONTH(created_at) = ?', [$month])
+            ->whereRaw('YEAR(created_at) = ?', [$year]);
+        }, 'sub')
+        ->groupBy('period_calc')
+        ->orderBy('period_number')
+        ->get();
+    } else {
+        // Bulan lain: 3 periode (per 10 hari)
+        return self::selectRaw("
+            period_calc as period_number,
+            CASE 
+                WHEN period_calc = 1 THEN 'Periode 1 (1-10)'
+                WHEN period_calc = 2 THEN 'Periode 2 (11-20)'
+                ELSE 'Periode 3 (21-31)'
+            END as period_label,
+            SUM(order_amount) as total_amount,
+            COUNT(*) as total_orders,
+            AVG(order_amount) as avg_amount
+        ")
+        ->fromSub(function($query) use ($user_id, $branch_id, $month, $year) {
+            $query->selectRaw("
+                *,
+                CASE 
+                    WHEN DAY(created_at) BETWEEN 1 AND 10 THEN 1
+                    WHEN DAY(created_at) BETWEEN 11 AND 20 THEN 2
+                    ELSE 3
+                END as period_calc
+            ")
+            ->from('orders')
+            ->where('user_id', $user_id)
+            ->where('branch_id', $branch_id)
+            ->where('order_status', 'delivered')
+            ->whereRaw('MONTH(created_at) = ?', [$month])
+            ->whereRaw('YEAR(created_at) = ?', [$year]);
+        }, 'sub')
+        ->groupBy('period_calc')
+        ->orderBy('period_number')
+        ->get();
+        }
     }
 }

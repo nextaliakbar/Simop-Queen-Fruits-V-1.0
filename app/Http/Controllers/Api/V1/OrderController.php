@@ -405,4 +405,67 @@ class OrderController extends Controller
         $details = Helpers::order_details_formatter($details);
         return response()->json($details, 200);
     }
+
+    public function expenses_chart(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'branch_id' => 'required',
+            'year' => 'required',
+            'month' => 'required',
+        ]);
+
+        if($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        try {
+            $user_id = auth('api')->user()->id;
+            // $user_id = 15;
+            $branch_id = $request['branch_id'];
+            $month = $request['month'];
+            $year = $request['year'];
+
+            $expenses = Order::get_expenses_chart($user_id, $branch_id, $month, $year);
+
+            $is_february = $month == 2;
+
+            $max_periods = $is_february ? 4 : 3;
+
+            $chart_data = array_fill(0, $max_periods, 0);
+
+            $period_labels = [];
+
+            foreach($expenses as $expense) {
+                $chart_data[$expense->period_number - 1] = (float) $expense->total_amount;
+            }
+
+            if($is_february) {
+                $period_labels = [
+                    'Periode 1 (1-7)',
+                    'Periode 2 (8-14)',
+                    'Periode 3 (15-21)',
+                    'Periode 4 (22-28/29)'
+                ];
+            } else {
+                $period_labels = [
+                    'Periode 1 (1-10)',
+                    'Periode 2 (11-20)',
+                    'Periode 3 (21-31)'
+                ];
+            }
+
+            $total_amount = array_sum($chart_data);
+            return response()->json([
+                'chart_data' => $chart_data,
+                'period_labels' => $period_labels,
+                'month' => $month,
+                'year' => $year,
+                'total_amount' => (float) $total_amount,
+            ], 200);
+
+        } catch(\Exception $ex) {
+            return response()->json(['errors' => [['code' => 'server_error', 'message' => $ex->getMessage()]]], 500);
+
+        }        
+    }
 }
