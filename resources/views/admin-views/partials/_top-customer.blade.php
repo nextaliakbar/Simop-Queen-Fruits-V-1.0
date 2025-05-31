@@ -12,7 +12,8 @@
                         <img class="rounded avatar avatar-lg"
                                 src="{{ $item->customer->imageFullPath }}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'">
                         <div class="media-body d-flex flex-column custom-media-body">
-                            <span class="font-weight-semibold text-capitalize">{{$item->customer['f_name']??'Tidak ada'}}</span>
+                            @php($customer_name = $item->customer['f_name'] . ' ' . $item->customer['l_name'])
+                            <span class="font-weight-semibold text-capitalize">{{$customer_name ?? '-'}}</span>
                             <span class="text-dark">{{ $item->customer['phone']?? 'Tidak ada' }}</span>
                         </div>
                     </div>
