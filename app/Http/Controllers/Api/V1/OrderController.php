@@ -204,7 +204,6 @@ class OrderController extends Controller
     public function get_order_list(Request $request): JsonResponse
     {
         $user_id = auth('api')->user()->id;
-        // $user_id = 15;
         $order_filter = $request->order_filter;
 
         $orders = $this->order->with(['customer', 'delivery_man.rating', 'prediction_duration_time_order'])
@@ -264,7 +263,6 @@ class OrderController extends Controller
         }
 
         $user_id = auth('api')->user()->id;
-        // $user_id = 15;
 
         $order = $this->order->where(['id' => $request['order_id'], 'user_id' => $user_id]);
 
@@ -332,7 +330,6 @@ class OrderController extends Controller
         }
 
         $user_id = auth('api')->user()->id;
-        // $user_id = 15;
 
         $details = $this->order_detail->with(['order',
             'order.delivery_man' => function ($query) {
@@ -419,8 +416,7 @@ class OrderController extends Controller
         }
 
         try {
-            $user_id = auth('api')->user()->id;
-            // $user_id = 15;
+            $user_id = auth('api')->user()->id ?? -1;
             $branch_id = $request['branch_id'];
             $month = $request['month'];
             $year = $request['year'];
