@@ -240,8 +240,8 @@
                                         @endif
                                     </td>
                                     <td>
-                                        {{ $order->created_at->format('d M Y,') }}<br>
-                                        {{ $order->created_at->format('h:i A') }}
+                                        {{ $order->created_at->format('d M Y') }}<br>
+                                        {{ $order->created_at->format('h:i') }}
                                     </td>
                                     <td class="text-center">{{ $order->details_count }}</td>
                                     <td class="text-center">
